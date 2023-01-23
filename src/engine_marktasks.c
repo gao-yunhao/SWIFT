@@ -1532,6 +1532,14 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
         scheduler_activate(s, t);
     }
 
+    /* Star drift tasks? */
+    else if (t_type == task_type_drift_spart) {
+      if (cell_need_activating_stars(t->ci, e, with_star_formation,
+                                     with_star_formation_sink))
+        scheduler_activate(s, t);
+
+    }
+
     /* Star ghost tasks ? */
     else if (t_type == task_type_stars_ghost ||
              t_type == task_type_stars_prep_ghost1 ||
