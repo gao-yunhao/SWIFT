@@ -342,7 +342,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
                t_subtype == task_subtype_external_grav) {
         if (ci_active_gravity) {
           scheduler_activate(s, t);
-          cell_activate_drift_gpart(t->ci, s);
+          cell_activate_subcell_external_grav_tasks(t->ci, s);
         }
       }
 
@@ -1330,13 +1330,13 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
           /* Is the foreign cell active and will need stuff from us? */
           if (ci_active_gravity) {
 
-            struct link *l = scheduler_activate_send(
-                s, cj->mpi.send, task_subtype_gpart, ci_nodeID);
+            scheduler_activate_send(s, cj->mpi.send, task_subtype_gpart,
+                                    ci_nodeID);
 
             /* Drift the cell which will be sent at the level at which it is
                sent, i.e. drift the cell specified in the send task (l->t)
                itself. */
-            cell_activate_drift_gpart(l->t->ci, s);
+            cell_activate_drift_gpart(cj, s);
           }
 
         } else if (cj_nodeID != nodeID) {
@@ -1348,13 +1348,13 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
           /* Is the foreign cell active and will need stuff from us? */
           if (cj_active_gravity) {
 
-            struct link *l = scheduler_activate_send(
-                s, ci->mpi.send, task_subtype_gpart, cj_nodeID);
+            scheduler_activate_send(s, ci->mpi.send, task_subtype_gpart,
+                                    cj_nodeID);
 
             /* Drift the cell which will be sent at the level at which it is
                sent, i.e. drift the cell specified in the send task (l->t)
                itself. */
-            cell_activate_drift_gpart(l->t->ci, s);
+            cell_activate_drift_gpart(ci, s);
           }
         }
 #endif
