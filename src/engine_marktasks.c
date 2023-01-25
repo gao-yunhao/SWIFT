@@ -958,13 +958,13 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
 
           /* Is the foreign cell active and will need stuff from us? */
           if (ci_active_hydro) {
-            struct link *l = scheduler_activate_send(
-                s, cj->mpi.send, task_subtype_xv, ci_nodeID);
+            scheduler_activate_send(s, cj->mpi.send, task_subtype_xv,
+                                    ci_nodeID);
 
             /* Drift the cell which will be sent at the level at which it is
                sent, i.e. drift the cell specified in the send task (l->t)
                itself. */
-            cell_activate_drift_part(l->t->ci, s);
+            cell_activate_drift_part(cj, s);
 
             /* If the local cell is also active, more stuff will be needed. */
             if (cj_active_hydro) {
@@ -1058,13 +1058,13 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
           /* Is the foreign cell active and will need stuff from us? */
           if (cj_active_hydro) {
 
-            struct link *l = scheduler_activate_send(
-                s, ci->mpi.send, task_subtype_xv, cj_nodeID);
+            scheduler_activate_send(s, ci->mpi.send, task_subtype_xv,
+                                    cj_nodeID);
 
             /* Drift the cell which will be sent at the level at which it is
                sent, i.e. drift the cell specified in the send task (l->t)
                itself. */
-            cell_activate_drift_part(l->t->ci, s);
+            cell_activate_drift_part(ci, s);
 
             /* If the local cell is also active, more stuff will be needed. */
             if (ci_active_hydro) {
