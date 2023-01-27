@@ -97,7 +97,8 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
 
       const int ci_active_hydro = cell_is_active_hydro(ci, e);
       const int ci_active_gravity = cell_is_active_gravity(ci, e);
-      const int ci_active_black_holes = cell_is_active_black_holes(ci, e);
+      const int ci_active_black_holes =
+          ci->black_holes.count > 0 && cell_is_active_black_holes(ci, e);
       const int ci_active_sinks =
           cell_is_active_sinks(ci, e) || ci_active_hydro;
       const int ci_active_stars = cell_need_activating_stars(
@@ -390,8 +391,10 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
       const int ci_active_gravity = cell_is_active_gravity(ci, e);
       const int cj_active_gravity = cell_is_active_gravity(cj, e);
 
-      const int ci_active_black_holes = cell_is_active_black_holes(ci, e);
-      const int cj_active_black_holes = cell_is_active_black_holes(cj, e);
+      const int ci_active_black_holes =
+          ci->black_holes.count > 0 && cell_is_active_black_holes(ci, e);
+      const int cj_active_black_holes =
+          cj->black_holes.count > 0 && cell_is_active_black_holes(cj, e);
 
       const int ci_active_sinks =
           cell_is_active_sinks(ci, e) || ci_active_hydro;
@@ -635,6 +638,11 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
 
           if (cj_nodeID == nodeID) cell_activate_drift_part(cj, s);
           if (cj_nodeID == nodeID) cell_activate_drift_bpart(cj, s);
+
+          if (ci_nodeID == nodeID && with_timestep_sync)
+            cell_activate_sync_part(ci, s);
+          if (cj_nodeID == nodeID && with_timestep_sync)
+            cell_activate_sync_part(cj, s);
 
           /* Activate bh_in for each cell that is part of
            * a pair task as to not miss any dependencies */
