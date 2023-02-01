@@ -75,7 +75,7 @@ __attribute__((always_inline)) INLINE static float hydro_compute_timestep(
   vrel[2] = W[3] - xp->v_full[2];
   float vmax =
       sqrtf(vrel[0] * vrel[0] + vrel[1] * vrel[1] + vrel[2] * vrel[2]) +
-      sqrtf(hydro_gamma * W[4] / W[0]);
+      gas_soundspeed_from_internal_energy(W[0], p->conserved.energy / p->conserved.mass, p->mat_id);
   vmax = max(vmax, p->timestepvars.vmax);
 
   const float psize = cosmo->a * cosmo->a *
@@ -339,9 +339,9 @@ __attribute__((always_inline)) INLINE static void hydro_end_density(
   Q[4] -= 0.5f * (Q[1] * W[1] + Q[2] * W[2] + Q[3] * W[3]);
 #endif
 
-  /* energy contains the total thermal energy, we want the specific energy.
-     this is why we divide by the volume, and not by the density */
-  W[4] = hydro_gamma_minus_one * Q[4] * volume_inv;
+  const float m_inv = 1.0f / Q[0];
+  W[4] = gas_pressure_from_internal_energy(W[0], Q[4] * m_inv, p->mat_id);
+
 #endif
 
   /* sanity checks */
@@ -592,9 +592,11 @@ __attribute__((always_inline)) INLINE static void hydro_predict_extra(
     const float v2 = (W[1] * W[1] + W[2] * W[2] + W[3] * W[3]);
     const float u = (Etot * m_inv - 0.5f * v2);
 #else
-    const float u = (p->conserved.energy + flux[4] * dt_therm) * m_inv;
+    float u = (p->conserved.energy + flux[4] * dt_therm) * m_inv;
+    const float floor_u = FLT_MIN;
+    u = max(u, floor_u);
 #endif
-    W[4] = hydro_gamma_minus_one * u * W[0];
+    W[4] = gas_pressure_from_internal_energy(W[0], u, p->mat_id);
 #endif
   }
 
@@ -712,6 +714,8 @@ __attribute__((always_inline)) INLINE static void hydro_kick_extra(
   }
 
   // MATTHIEU: Apply the entropy floor here.
+  const float floor_u = FLT_MIN;
+  p->conserved.energy = max(p->conserved.energy, floor_u);  
 
   gizmo_check_physical_quantities(
       "mass", "energy", p->conserved.mass, p->conserved.momentum[0],
@@ -728,7 +732,7 @@ __attribute__((always_inline)) INLINE static void hydro_kick_extra(
   }
 #endif
 
-  if (p->conserved.energy < 0.) {
+ if (p->conserved.energy <= 0.) {
     error(
         "Negative energy after conserved variables update (energy: %g, "
         "denergy: %g)!",

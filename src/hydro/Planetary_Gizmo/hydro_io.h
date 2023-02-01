@@ -44,7 +44,7 @@ INLINE static void hydro_read_particles(struct part* parts,
                                         struct io_props* list,
                                         int* num_fields) {
 
-  *num_fields = 8;
+  *num_fields = 9;
 
   /* List what we want to read */
   list[0] = io_make_input_field("Coordinates", DOUBLE, 3, COMPULSORY,
@@ -53,17 +53,20 @@ INLINE static void hydro_read_particles(struct part* parts,
                                 UNIT_CONV_SPEED, parts, v);
   list[2] = io_make_input_field("Masses", FLOAT, 1, COMPULSORY, UNIT_CONV_MASS,
                                 parts, conserved.mass);
-  list[3] = io_make_input_field("SmoothingLength", FLOAT, 1, COMPULSORY,
+  list[3] = io_make_input_field("SmoothingLengths", FLOAT, 1, COMPULSORY,
                                 UNIT_CONV_LENGTH, parts, h);
-  list[4] = io_make_input_field("InternalEnergy", FLOAT, 1, COMPULSORY,
+  list[4] = io_make_input_field("InternalEnergies", FLOAT, 1, COMPULSORY,
                                 UNIT_CONV_ENERGY_PER_UNIT_MASS, parts,
                                 conserved.energy);
   list[5] = io_make_input_field("ParticleIDs", ULONGLONG, 1, COMPULSORY,
                                 UNIT_CONV_NO_UNITS, parts, id);
   list[6] = io_make_input_field("Accelerations", FLOAT, 3, OPTIONAL,
                                 UNIT_CONV_ACCELERATION, parts, a_hydro);
-  list[7] = io_make_input_field("Density", FLOAT, 1, OPTIONAL,
+  list[7] = io_make_input_field("Densities", FLOAT, 1, OPTIONAL,
                                 UNIT_CONV_DENSITY, parts, rho);
+  list[8] = io_make_input_field("MaterialIDs", INT, 1, COMPULSORY,
+                                UNIT_CONV_NO_UNITS, parts, mat_id);
+
 }
 
 /**
@@ -190,7 +193,7 @@ INLINE static void hydro_write_particles(const struct part* parts,
                                          struct io_props* list,
                                          int* num_fields) {
 
-  *num_fields = 11;
+  *num_fields = 12;
 
   /* List what we want to write */
   list[0] = io_make_output_field_convert_part(
@@ -239,6 +242,10 @@ INLINE static void hydro_write_particles(const struct part* parts,
   list[10] = io_make_output_field_convert_part(
       "Potentials", FLOAT, 1, UNIT_CONV_POTENTIAL, -1.f, parts, xparts,
       convert_part_potential, "Gravitational potentials of the particles");
+    
+  list[11] =
+      io_make_output_field("MaterialIDs", INT, 1, UNIT_CONV_NO_UNITS, 0.f,
+                           parts, mat_id, "Material IDs of the particles");
 }
 
 /**

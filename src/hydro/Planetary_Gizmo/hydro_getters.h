@@ -116,7 +116,7 @@ __attribute__((always_inline)) INLINE static float
 hydro_get_comoving_internal_energy(const struct part* restrict p) {
 
   if (p->rho > 0.0f)
-    return gas_internal_energy_from_pressure(p->rho, p->P);
+    return p->conserved.energy / p->conserved.mass;
   else
     return 0.;
 }
@@ -170,7 +170,7 @@ __attribute__((always_inline)) INLINE static float hydro_get_comoving_entropy(
     const struct part* restrict p, const struct xpart* restrict xp) {
 
   if (p->rho > 0.0f) {
-    return gas_entropy_from_pressure(p->rho, p->P);
+    return 0.;
   } else {
     return 0.;
   }
@@ -216,7 +216,7 @@ __attribute__((always_inline)) INLINE static float
 hydro_get_comoving_soundspeed(const struct part* restrict p) {
 
   if (p->rho > 0.0f)
-    return gas_soundspeed_from_pressure(p->rho, p->P);
+    return gas_soundspeed_from_internal_energy(p->rho, p->conserved.energy / p->conserved.mass, p->mat_id);
   else
     return 0.;
 }
