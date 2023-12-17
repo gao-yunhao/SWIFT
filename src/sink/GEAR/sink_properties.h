@@ -72,6 +72,23 @@ struct sink_props {
   /* Disable sink formation? (e.g. used in sink accretion tests). Default: 0
      (keep sink formation) */
   uint8_t disable_sink_formation;
+
+
+  /*--Here come new fields for the new sink implementation */
+
+  /* Enable or not the regulated accretion scheme. Default: 0 */
+  uint8_t do_regulated_accretion;
+
+  /* Interaction zone radius multiplier. The interaction radius cut_off_radius
+     is cut_off_radius = f_interaction * h_i , with h_i the parts h. Default:2 */
+  float f_interaction;
+
+  /* Hill parameter to compute the Hill density. Default: 2 */
+  float x_hill;
+
+  /* Tolerance parameter (called \gamma in Hubber 2013). Default 0.01 */
+  float tol_param;
+
 };
 
 /**
@@ -184,15 +201,34 @@ INLINE static void sink_props_init(struct sink_props *sp,
 
   const uint8_t default_disable_sink_formation = 0 ; /* Sink formation is
 						      activated */
+
+  const uint8_t default_do_regulated_accretion = 0;
+  const float default_f_interaction = 2.0;
+  const float default_x_hill = 2.0;
+  const float default_tol_param = 0.01;
   
   /* By default all current implemented check are active */
   const uint8_t default_sink_formation_check_all = 1 ;
 
-  sp->cut_off_radius =
-      parser_get_param_float(params, "GEARSink:cut_off_radius");
 
-  sp->f_acc = parser_get_opt_param_float(params, "GEARSink:f_acc", default_f_acc);
+  sp->do_regulated_accretion = parser_get_opt_param_int(params, "GEARSink:do_regulated_accretion",
+							default_do_regulated_accretion);
 
+  if (!sp->do_regulated_accretion) {
+    sp->cut_off_radius =
+    parser_get_param_float(params, "GEARSink:cut_off_radius");
+
+    sp->f_acc = parser_get_opt_param_float(params, "GEARSink:f_acc", default_f_acc);
+  } else {
+    sp->cut_off_radius = 0.0; /* The value will be chosen on a particle
+				basis. Init the var nonetheless to something */
+    sp->f_acc = 0.0;
+
+    sp->f_interaction = parser_get_opt_param_float(params, "GEARSink:f_interaction", default_f_interaction);
+    sp->x_hill = parser_get_opt_param_float(params, "GEARSink:x_hill", default_x_hill);
+    sp->tol_param = parser_get_opt_param_float(params, "GEARSink:tol_param", default_tol_param);
+  }
+  
   /* Check that sp->f_acc respects 0 <= f_acc <= 1 */
   if ((sp->f_acc < 0) || (sp->f_acc > 1)) {
     error("The sink f_acc has not an allowed value. It should respect 0 <= f_acc <= 1. Current value f_acc = %f.", sp->f_acc);
