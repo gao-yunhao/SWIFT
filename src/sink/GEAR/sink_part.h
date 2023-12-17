@@ -89,6 +89,18 @@ struct sink {
   /*! sink merger information (e.g. merging ID) */
   struct sink_sink_data merger_data;
 
+  /* Number of neighbours in interaction zone */
+  int N_neighbours;
+
+  /* Array of the neighbour particles */
+  struct part *parts_neighbours;
+
+  /* Mass in the interaction zone at the creation of the sink */
+  float mass_interaction_init ;
+
+  /* Tolerance parameter (called \gamma in Hubber 2013) */
+  float tol_param;
+
 #ifdef SWIFT_DEBUG_CHECKS
 
   /* Time of the last drift */
