@@ -69,6 +69,9 @@ struct sink_part_data {
 
   /* Does the future sink overalp an existing one ? */
   uint8_t is_overlapping_sink;
+
+  /* Mass in the interaction zone at the conversion of this part to sink */
+  float mass_interaction_init;
 };
 
 /**
