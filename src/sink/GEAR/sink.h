@@ -784,6 +784,11 @@ INLINE static void sink_prepare_part_sink_formation(struct engine* e, struct cel
     E_rot_z += 0.5 * mi * specific_angular_momentum[2] *
       specific_angular_momentum[2] /
       sqrtf(dx[0] * dx[0] + dx[1] * dx[1]);
+
+    /* Update the mass in the interaction zone of p */
+    if (sink_props->do_regulated_accretion) {
+      p->sink_data.mass_interaction_init += pi->mass;
+    }
   } /* End of gas neighbour loop */
 
   p->sink_data.E_rot_neighbours +=
