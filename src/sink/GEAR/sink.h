@@ -20,6 +20,7 @@
 #define SWIFT_GEAR_SINK_H
 
 #include <float.h>
+#include <math.h>
 
 /* Local includes */
 #include "active.h"
@@ -676,6 +677,7 @@ __attribute__((always_inline)) INLINE static void sink_store_potential_in_part(
 INLINE static void sink_prepare_part_sink_formation(struct engine* e, struct cell* c, struct part* restrict p, struct xpart* restrict xp) {
   const struct cosmology *cosmo = e->cosmology;
   const int count = c->hydro.count;
+  const struct gravity_props *grav_props = e->gravity_properties;
   const struct sink_props *sink_props = e->sink_properties;
   struct part *restrict parts = c->hydro.parts;
   struct xpart *restrict xparts = c->hydro.xparts;
@@ -821,9 +823,27 @@ INLINE static void sink_prepare_part_sink_formation(struct engine* e, struct cel
     if (r2 < (r_acc_si + r_acc_p)*(r_acc_si + r_acc_p)) {
       p->sink_data.is_overlapping_sink = 1 ;
     }
-  }/* End of sink neighbour loop */
-  
-  
+
+    /* Hill Sphere criterion */
+    /* If the check has not been disabled, do it */
+    if (!sink_props->sink_formation_hill_density_check) {
+      float rho_hill = 0.f;
+
+      /* Acceleration difference between p and si */
+      /* How do we convert from comoving to physical ??*/
+      const float da[3] = {(p->a_hydro[0] - si->gpart->a_grav[0]),
+			   (p->a_hydro[1] - si->gpart->a_grav[1]),
+			   (p->a_hydro[2] - si->gpart->a_grav[2])};
+
+      float dx_times_da = dx[0]*da[0] + dx[1]*da[1] + dx[2] *da[2];
+
+      rho_hill = 3.f*sink_props->x_hill*(-dx_times_da)/(4.f*M_PI*grav_props->G_Newton*r2);
+
+      if (p->rho < rho_hill) {
+	p->sink_data.can_form_sink = 0;
+      }
+    } /* End of Hill sphere criterion */
+  } /* End of sink neighbour loop */
 }
     
 #endif /* SWIFT_GEAR_SINK_H */
