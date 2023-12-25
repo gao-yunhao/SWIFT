@@ -150,6 +150,7 @@ __attribute__((always_inline)) INLINE static void sink_init_part(struct part* re
 			     any other value with this one. So no need to put
 			     it to the max of float. */
   cpd->is_overlapping_sink = 0;
+  cpd->mass_interaction_init = 0.f;
 }
 
 /**
