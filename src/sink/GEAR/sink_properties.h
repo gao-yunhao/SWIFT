@@ -316,6 +316,7 @@ INLINE static void sink_props_init(struct sink_props *sp,
           sp->minimal_discrete_mass_first_stars);
   
   /* Print information about the functionalities */
+  message("do_regulated_accretion = %d", sp->do_regulated_accretion);
   message("disable_sink_formation = %d", sp->disable_sink_formation);
   message("sink_formation_contracting_gas_check = %d", sp->sink_formation_contracting_gas_check);
   message("sink_formation_smoothing_length_check = %d", sp->sink_formation_smoothing_length_check);
