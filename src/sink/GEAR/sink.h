@@ -120,6 +120,13 @@ __attribute__((always_inline)) INLINE static void sink_first_init_sink(
   sp->swallowed_angular_momentum[2] = 0.f;
 
   sink_mark_sink_as_not_swallowed(&sp->merger_data);
+
+  if (sink_props->do_regulated_accretion) {
+    sp->N_neighbours = 0;
+    /* sp->parts_neighbours = NULL ; */
+    sp->mass_interaction_init = 0;
+  }
+  
 }
 
 /**
