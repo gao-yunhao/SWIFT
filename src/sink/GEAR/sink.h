@@ -112,7 +112,15 @@ __attribute__((always_inline)) INLINE static void sink_first_init_sink(
     sp->N_neighbours = 0;
     /* sp->parts_neighbours = NULL ; */
     sp->mass_interaction_init = 0.f;
-    sp->r_cut *= sink_props->f_acc;
+
+    /* The r_cut is defined by the SmoothingLength field in the ICs. This
+    field is optional for sinks. If it has not been given, the value of
+    sp->r_cut is set to 0.0. So, check that r_cut is not 0. */
+    if (sp->r_cut == 0.) {
+      sp->r_cut = sink_props->f_interaction * sink_props->cut_off_radius;
+    } else {
+      sp->r_cut *= sink_props->f_interaction;
+    }
   } else {
     sp->r_cut = sink_props->cut_off_radius;
   }
