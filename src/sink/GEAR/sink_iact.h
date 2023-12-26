@@ -208,82 +208,92 @@ runner_iact_nonsym_sinks_gas_swallow(const float r2, const float dx[3],
   const float r = sqrtf(r2);
   const float f_acc_r_acc = sink_properties->f_acc * ri ;
 
-  /* If the gas falls within f_acc*r_acc, it is accreted without further check */
-  if (r < f_acc_r_acc) {
-     /* Check if a gas particle has not been already marked to be swallowed by
-	another sink particle. */
-    if (pj->sink_data.swallow_id < si->id) {
+  if (sink_properties->do_regulated_accretion) {
+    /* Update the number of gas neighbours of this sink */
+    si->N_neighbours += 1;
+
+    /* Now, allocate the memory to add one element to the neighbour array and
+       add this element to the array. */
+
+  } else {
+
+    /* If the gas falls within f_acc*r_acc, it is accreted without further check */
+    if (r < f_acc_r_acc) {
+      /* Check if a gas particle has not been already marked to be swallowed by
+	 another sink particle. */
+      if (pj->sink_data.swallow_id < si->id) {
+	pj->sink_data.swallow_id = si->id;
+      }
+    } else if ((r >= f_acc_r_acc) && (r < ri)) /* f_acc*r_acc <= r <= r_acc, we perform other checks */ {
+
+      /* Compute the physical relative velocity between the particles */
+      const float dv[3] = {(pj->v[0] - si->v[0]) * cosmo->a_inv,
+			   (pj->v[1] - si->v[1]) * cosmo->a_inv,
+			   (pj->v[2] - si->v[2]) * cosmo->a_inv};
+
+      /* Compute the physical distance between the particles */
+      const float dx_physical[3] = {dx[0] * cosmo->a,
+				    dx[1] * cosmo->a,
+				    dx[2] * cosmo->a};
+      const float r_physical = r * cosmo->a;
+
+
+      /* Momentum check */
+      /* Relative momentum of the gas */
+      const float specific_angular_momentum_gas[3] = {dx_physical[1] * dv[2] - dx_physical[2] * dv[1],
+						      dx_physical[2] * dv[0] - dx_physical[0] * dv[2],
+						      dx_physical[0] * dv[1] - dx_physical[1] * dv[0]};
+      const float L2_gas = specific_angular_momentum_gas[0]*specific_angular_momentum_gas[0] + specific_angular_momentum_gas[1]*specific_angular_momentum_gas[1] + specific_angular_momentum_gas[2]*specific_angular_momentum_gas[2];
+
+      /* Keplerian angular speed squared */
+      const float omega_acc_2 = grav_props->G_Newton*si->mass / (r_physical*r_physical*r_physical);
+
+      /*Keplerian angular momentum squared */
+      const float L2_acc = (si->r_cut*si->r_cut*si->r_cut*si->r_cut)*omega_acc_2;
+
+      /* To be accreted, the gas momentum shoulb lower than the keplerian orbit momentum. */
+      if (L2_gas > L2_acc) {
+	return ;
+      }
+
+      /* Energy check */
+      /* Kinetic energy of the gas */
+      float E_kin_relative_gas = 0.5f * (dv[0]*dv[0] + dv[1]*dv[1] + dv[2]*dv[2]) ;
+
+      /* Compute the Newtonian or truncated potential the sink exherts onto the
+	 gas particle */
+      const float eps = gravity_get_softening(si->gpart, grav_props);
+      const float eps2 = eps * eps;
+      const float eps_inv = 1.f / eps;
+      const float eps_inv3 = eps_inv * eps_inv * eps_inv;
+      const float sink_mass = si->mass;
+      float dummy, pot_ij;
+      runner_iact_grav_pp_full(r2, eps2, eps_inv, eps_inv3, sink_mass, &dummy,
+			       &pot_ij);
+
+      /* Compute the potential energy that the sink exerts in the gas (do not
+	 forget to convert to physical quantity)*/
+      float E_pot_gas = grav_props->G_Newton * pot_ij * cosmo->a_inv;
+
+      /* Mechanical energy of the pair sink-gas */
+      float E_mec_sink_part = E_kin_relative_gas + E_pot_gas ;
+
+      /* To be accreted, the gas must be gravitationally bound to the sink. */
+      if (E_mec_sink_part >= 0) return;
+
+      /* Most bound pair check */
+      /* The pair gas-sink must be the most bound among all sinks */
+      if (E_mec_sink_part >= pj->sink_data.E_mec_bound) {
+	return ;
+      }
+
+      /* Since this pair gas-sink is the most bounf, keep track of the
+	 E_mec_bound and set the swallow_id accordingly */
+      pj->sink_data.E_mec_bound = E_mec_sink_part;
       pj->sink_data.swallow_id = si->id;
+
     }
-  } else if ((r >= f_acc_r_acc) && (r < ri)) /* f_acc*r_acc <= r <= r_acc, we perform other checks */ {
-    
-    /* Compute the physical relative velocity between the particles */
-    const float dv[3] = {(pj->v[0] - si->v[0]) * cosmo->a_inv,
-			 (pj->v[1] - si->v[1]) * cosmo->a_inv,
-			 (pj->v[2] - si->v[2]) * cosmo->a_inv};
-
-    /* Compute the physical distance between the particles */
-    const float dx_physical[3] = {dx[0] * cosmo->a,
-				  dx[1] * cosmo->a,
-				  dx[2] * cosmo->a};
-    const float r_physical = r * cosmo->a;
-
-
-    /* Momentum check */
-    /* Relative momentum of the gas */
-    const float specific_angular_momentum_gas[3] = {dx_physical[1] * dv[2] - dx_physical[2] * dv[1],
-						    dx_physical[2] * dv[0] - dx_physical[0] * dv[2],
-						    dx_physical[0] * dv[1] - dx_physical[1] * dv[0]};
-    const float L2_gas = specific_angular_momentum_gas[0]*specific_angular_momentum_gas[0] + specific_angular_momentum_gas[1]*specific_angular_momentum_gas[1] + specific_angular_momentum_gas[2]*specific_angular_momentum_gas[2];
-
-    /* Keplerian angular speed squared */
-    const float omega_acc_2 = grav_props->G_Newton*si->mass / (r_physical*r_physical*r_physical);
-
-    /*Keplerian angular momentum squared */
-    const float L2_acc = (si->r_cut*si->r_cut*si->r_cut*si->r_cut)*omega_acc_2;
-
-    /* To be accreted, the gas momentum shoulb lower than the keplerian orbit momentum. */
-    if (L2_gas > L2_acc) {
-      return ;
-    }
-
-    /* Energy check */
-    /* Kinetic energy of the gas */
-    float E_kin_relative_gas = 0.5f * (dv[0]*dv[0] + dv[1]*dv[1] + dv[2]*dv[2]) ;
-
-    /* Compute the Newtonian or truncated potential the sink exherts onto the
-       gas particle */
-    const float eps = gravity_get_softening(si->gpart, grav_props);
-    const float eps2 = eps * eps;
-    const float eps_inv = 1.f / eps;
-    const float eps_inv3 = eps_inv * eps_inv * eps_inv;
-    const float sink_mass = si->mass;
-    float dummy, pot_ij;
-    runner_iact_grav_pp_full(r2, eps2, eps_inv, eps_inv3, sink_mass, &dummy,
-			     &pot_ij);
-
-    /* Compute the potential energy that the sink exerts in the gas (do not
-       forget to convert to physical quantity)*/
-    float E_pot_gas = grav_props->G_Newton * pot_ij * cosmo->a_inv;
-
-    /* Mechanical energy of the pair sink-gas */
-    float E_mec_sink_part = E_kin_relative_gas + E_pot_gas ;
-
-    /* To be accreted, the gas must be gravitationally bound to the sink. */
-    if (E_mec_sink_part >= 0) return;
-
-    /* Most bound pair check */
-    /* The pair gas-sink must be the most bound among all sinks */
-    if (E_mec_sink_part >= pj->sink_data.E_mec_bound) {
-      return ;
-    }
-
-    /* Since this pair gas-sink is the most bounf, keep track of the
-       E_mec_bound and set the swallow_id accordingly */
-    pj->sink_data.E_mec_bound = E_mec_sink_part;
-    pj->sink_data.swallow_id = si->id;
-
-  }
+  } /* End of if-else of do_regulated_accretion */
 
 #ifdef DEBUG_INTERACTIONS_SINKS
   /* Update ngb counters */
