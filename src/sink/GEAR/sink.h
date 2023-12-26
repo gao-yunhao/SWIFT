@@ -108,7 +108,14 @@ INLINE static void sink_update_target_mass(struct sink* sink,
 __attribute__((always_inline)) INLINE static void sink_first_init_sink(
     struct sink* sp, const struct sink_props* sink_props) {
 
-  sp->r_cut = sink_props->cut_off_radius;
+  if (sink_props->do_regulated_accretion) {
+    sp->N_neighbours = 0;
+    /* sp->parts_neighbours = NULL ; */
+    sp->mass_interaction_init = 0.f;
+    sp->r_cut *= sink_props->f_acc;
+  } else {
+    sp->r_cut = sink_props->cut_off_radius;
+  }
   sp->time_bin = 0;
 
   sp->number_of_gas_swallows = 0;
@@ -120,13 +127,6 @@ __attribute__((always_inline)) INLINE static void sink_first_init_sink(
   sp->swallowed_angular_momentum[2] = 0.f;
 
   sink_mark_sink_as_not_swallowed(&sp->merger_data);
-
-  if (sink_props->do_regulated_accretion) {
-    sp->N_neighbours = 0;
-    /* sp->parts_neighbours = NULL ; */
-    sp->mass_interaction_init = 0;
-  }
-  
 }
 
 /**
