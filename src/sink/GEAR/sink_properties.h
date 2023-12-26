@@ -220,19 +220,18 @@ INLINE static void sink_props_init(struct sink_props *sp,
 							default_do_regulated_accretion);
 
   if (!sp->do_regulated_accretion) {
-    sp->cut_off_radius =
-    parser_get_param_float(params, "GEARSink:cut_off_radius");
-
     sp->f_acc = parser_get_opt_param_float(params, "GEARSink:f_acc", default_f_acc);
   } else {
-    sp->cut_off_radius = 0.0; /* The value will be chosen on a particle
-				basis. Init the var nonetheless to something */
     sp->f_acc = 0.0;
-
     sp->f_interaction = parser_get_opt_param_float(params, "GEARSink:f_interaction", default_f_interaction);
     sp->x_hill = parser_get_opt_param_float(params, "GEARSink:x_hill", default_x_hill);
     sp->tol_param = parser_get_opt_param_float(params, "GEARSink:tol_param", default_tol_param);
   }
+
+  /* Read the cut_off_radius even for regulated accretion. Why? If the ICs
+  contains sinks without the "SmoothingLength" field, the value of the sink->r_cut
+  is set to sp->cut_off_radius. */
+  sp->cut_off_radius = parser_get_param_float(params, "GEARSink:cut_off_radius");
   
   /* Check that sp->f_acc respects 0 <= f_acc <= 1 */
   if ((sp->f_acc < 0) || (sp->f_acc > 1)) {
