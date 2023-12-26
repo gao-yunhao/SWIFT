@@ -353,7 +353,11 @@ INLINE static void sink_copy_properties(
   sink_init_sink(sink);
 
   /* Set a smoothing length */
-  sink->r_cut = e->sink_properties->cut_off_radius;
+  if (sink_props->do_regulated_accretion) {
+    sink->r_cut = sink_props->f_interaction*p->h;
+  } else {
+    sink->r_cut = e->sink_properties->cut_off_radius;
+  }
 
   /* Flag it as not swallowed */
   sink_mark_sink_as_not_swallowed(&sink->merger_data);
