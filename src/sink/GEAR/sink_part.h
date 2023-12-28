@@ -20,6 +20,7 @@
 #define SWIFT_GEAR_SINK_PART_H
 
 #include "timeline.h"
+#include <stddef.h>
 
 #define sink_need_unique_id 1
 
@@ -27,22 +28,22 @@
  * @brief Sink fields only needed for regulated accretion.
  *
  * This structure contains the sink fields that are needed to compute proper
- * interactions for the regulated accretion scheme. 
+ * interactions for the regulated accretion scheme.
  */
-struct sink_neighbour_array {
+typedef struct {
   /* Current size of the array (should be the number of neighbours) */
-  int size;
+  size_t size;
 
   /* Number of elements already allocated */
-  int allocated;
+  size_t allocated;
 
   /* Track if the array has been sorted from the closest neighbour to the
      farthest */
   uint8_t is_sorted;
 
-  /* Array of the neighbour particles */
-  struct part* part_neighbours;
-} SWIFT_STRUCT_ALIGN;
+  /* Array of pointers to the neighbour particles */
+  struct part** part_neighbours;
+} sink_neighbour_array ;
 
 /**
  * @brief Particle fields for the sink particles.
@@ -119,7 +120,7 @@ struct sink {
   int N_neighbours;
 
   /* Convenient structure to hold data about the neighbour particles */
-  struct sink_neighbour_array neighbour_array ;
+  struct sink_neighbour_array* neighbour_array ;
 
 #ifdef SWIFT_DEBUG_CHECKS
 
