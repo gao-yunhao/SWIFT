@@ -89,6 +89,11 @@ struct sink {
   /*! sink merger information (e.g. merging ID) */
   struct sink_sink_data merger_data;
 
+  /* ----- Regulated accretion variables  ------ */
+  
+  /* Mass in the interaction zone at the creation of the sink */
+  float mass_interaction_init ;
+
   /* Number of neighbours in interaction zone */
   int N_neighbours;
 
@@ -113,9 +118,6 @@ struct sink {
        problems. */
     struct cell* cell_neighbours;
   } neigbour_array ;
-
-  /* Mass in the interaction zone at the creation of the sink */
-  float mass_interaction_init ;
 
 #ifdef SWIFT_DEBUG_CHECKS
 
