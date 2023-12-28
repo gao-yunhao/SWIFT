@@ -111,12 +111,6 @@ struct sink {
 
     /* Array of the neighbour particles */
     struct part* part_neighbours;
-
-    /* Array of cells containing the neighbouring particles. The goal of this is to
-       track in which cells are the neighbours and to update the properties of the
-       particles if the tasks are active for the right cell. This should avoid
-       problems. */
-    struct cell* cell_neighbours;
   } neigbour_array ;
 
 #ifdef SWIFT_DEBUG_CHECKS
