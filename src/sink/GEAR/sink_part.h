@@ -98,9 +98,6 @@ struct sink {
   /* Mass in the interaction zone at the creation of the sink */
   float mass_interaction_init ;
 
-  /* Tolerance parameter (called \gamma in Hubber 2013) */
-  float tol_param;
-
 #ifdef SWIFT_DEBUG_CHECKS
 
   /* Time of the last drift */
