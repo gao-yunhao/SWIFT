@@ -92,8 +92,27 @@ struct sink {
   /* Number of neighbours in interaction zone */
   int N_neighbours;
 
-  /* Array of the neighbour particles */
-  struct part *parts_neighbours;
+  /* Convient structure to hold data about the neighbour particles */
+  struct {
+    /* Current size of the array (should be the number of neighbours) */
+    int size;
+
+    /* Number of elements already allocated */
+    int allocated;
+
+    /* Track if the array has been sorted from the closest neighbour to the
+       farthest */
+    uint8_t is_sorted;
+
+    /* Array of the neighbour particles */
+    struct part* part_neighbours;
+
+    /* Array of cells containing the neighbouring particles. The goal of this is to
+       track in which cells are the neighbours and to update the properties of the
+       particles if the tasks are active for the right cell. This should avoid
+       problems. */
+    struct cell* cell_neighbours;
+  } neigbour_array ;
 
   /* Mass in the interaction zone at the creation of the sink */
   float mass_interaction_init ;
