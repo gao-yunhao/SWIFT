@@ -90,6 +90,9 @@ struct sink_props {
   /* Tolerance parameter (called \gamma in Hubber 2013). Default 0.01 */
   float tol_param;
 
+  /* Angular momentum transport efficiency */
+  float alpha_AMT;
+
   /* Hill density criterion check */
   uint8_t sink_formation_hill_density_check;
 
@@ -211,7 +214,8 @@ INLINE static void sink_props_init(struct sink_props *sp,
   const float default_f_interaction = 2.0;
   const float default_x_hill = 2.0;
   const float default_tol_param = 0.01;
-  
+  const float default_alpha_AMT = 0.01;
+
   /* By default all current implemented check are active */
   const uint8_t default_sink_formation_check_all = 1 ;
 
@@ -226,6 +230,7 @@ INLINE static void sink_props_init(struct sink_props *sp,
     sp->f_interaction = parser_get_opt_param_float(params, "GEARSink:f_interaction", default_f_interaction);
     sp->x_hill = parser_get_opt_param_float(params, "GEARSink:x_hill", default_x_hill);
     sp->tol_param = parser_get_opt_param_float(params, "GEARSink:tol_param", default_tol_param);
+    sp->alpha_AMT = parser_get_opt_param_float(params, "GEARSink:alpha_AMT", default_alpha_AMT);
   }
 
   /* Read the cut_off_radius even for regulated accretion. Why? If the ICs
