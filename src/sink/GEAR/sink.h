@@ -21,6 +21,7 @@
 
 #include <float.h>
 #include <math.h>
+#include <stdint.h>
 
 /* Local includes */
 #include "active.h"
@@ -28,9 +29,10 @@
 #include "cooling.h"
 #include "feedback.h"
 #include "minmax.h"
+#include "physical_constants.h"
 #include "random.h"
 #include "sink_part.h"
-#include "sink_properties.h"
+#include "sink_properties.h">
 
 /**
  * @brief Computes the time-step of a given sink particle.
@@ -869,5 +871,101 @@ INLINE static void sink_prepare_part_sink_formation(struct engine* e, struct cel
     } /* End of Hill sphere criterion */
   } /* End of sink neighbour loop */
 }
-    
+
+
+
+/*****************************************************************************/
+/* Block size for the sink_neighbour_array */
+#define NEIGHBOUR_ARRAY_PADDING 64
+
+/**
+ * @brief Create the sink_neighbour array. 
+ *
+ * This function is only used for the regulated accretion scheme.
+ *
+ * @param array The #sink_neighbour_array.
+ */
+INLINE static sink_neighbour_array* sink_construct_neighbour_array(sink_neighbour_array* array) {
+  if (array != NULL) {
+    /* Starts with size=0, allocated=0, is_sorted=0 and part_neighbour=NULL */
+    sink_neighbour_array result = { 0, 0, 0, NULL };
+    result.part_neighbours = calloc(NEIGHBOUR_ARRAY_PADDING, sizeof(struct part*));
+    if (result.part_neighbours != NULL) {
+      result.allocated = NEIGHBOUR_ARRAY_PADDING;
+    } else {
+      /* If the memory could not be allocated, return NULL */
+      return NULL;
+    }
+    *array = result;
+  }
+  return array;
+}
+
+/**
+ * @brief Delete the sink_neighbour array. 
+ *
+ * This function is only used for the regulated accretion scheme.
+ *
+ * @param array The #sink_neighbour_array.
+ */
+INLINE static void sink_delete_neighbour_array(sink_neighbour_array* array) {
+  if ((array != NULL) && (array->part_neighbours != NULL)) {
+    free(array->part_neighbours);
+    array->size = 0;
+    array->allocated = 0;
+    array->is_sorted = 0;
+  } 
+  return;
+}
+
+/**
+ * @brief Increases the size of the the sink_neighbour array. 
+ *
+ * This function is only used for the regulated accretion scheme.
+ *
+ * @param array The #sink_neighbour_array.
+ */
+INLINE static sink_neighbour_array* sink_enlarge_neighbour_array(sink_neighbour_array* array) {
+  if (array != NULL) {
+    sink_neighbour_array result = *array;
+    result.allocated += NEIGHBOUR_ARRAY_PADDING;
+    if ((result.allocated > SIZE_MAX/sizeof(struct part*)) || ((result.part_neighbours = realloc(result.part_neighbours, result.allocated * sizeof(struct part*))) == NULL)) {
+      /* If we could not reallocate, return NULL ; array has not been modified. */
+      return NULL;
+    }
+    /* Final affectation */
+    *array = result;
+  }
+  return array;
+}
+
+/**
+ * @brief Add a  particle to the sink_neighbour array. 
+ *
+ * This function is only used for the regulated accretion scheme.
+ *
+ * @param array The #sink_neighbour_array.
+ * @param p The  #part to add.
+ */
+INLINE static size_t sink_add_part_neighbour_array(sink_neighbour_array* array,
+						   struct part* p) {
+  if (array != NULL) {
+    /* Check that the array has enough room for the element and allocate if
+       necessary */
+    while (array->size >= array->allocated) {
+      if (sink_enlarge_neighbour_array(array) == NULL) {
+	return 0;
+      }
+    } /* End of while */
+
+    /* Now add the particle to the array */
+    array->part_neighbours[array->size] = p;
+    ++(array->size);
+    return array->size;
+  }
+
+  /* If the array was NULL, its size is 0 */
+  return 0;
+}
+
 #endif /* SWIFT_GEAR_SINK_H */
