@@ -120,7 +120,7 @@ struct sink {
   int N_neighbours;
 
   /* Convenient structure to hold data about the neighbour particles */
-  struct sink_neighbour_array* neighbour_array ;
+  sink_neighbour_array* neighbour_array ;
 
 #ifdef SWIFT_DEBUG_CHECKS
 
