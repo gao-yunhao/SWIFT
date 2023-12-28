@@ -90,14 +90,14 @@ struct sink {
   struct sink_sink_data merger_data;
 
   /* ----- Regulated accretion variables  ------ */
-  
+
   /* Mass in the interaction zone at the creation of the sink */
   float mass_interaction_init ;
 
   /* Number of neighbours in interaction zone */
   int N_neighbours;
 
-  /* Convient structure to hold data about the neighbour particles */
+  /* Convenient structure to hold data about the neighbour particles */
   struct {
     /* Current size of the array (should be the number of neighbours) */
     int size;
