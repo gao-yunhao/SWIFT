@@ -24,6 +24,27 @@
 #define sink_need_unique_id 1
 
 /**
+ * @brief Sink fields only needed for regulated accretion.
+ *
+ * This structure contains the sink fields that are needed to compute proper
+ * interactions for the regulated accretion scheme. 
+ */
+struct sink_neighbour_array {
+  /* Current size of the array (should be the number of neighbours) */
+  int size;
+
+  /* Number of elements already allocated */
+  int allocated;
+
+  /* Track if the array has been sorted from the closest neighbour to the
+     farthest */
+  uint8_t is_sorted;
+
+  /* Array of the neighbour particles */
+  struct part* part_neighbours;
+} SWIFT_STRUCT_ALIGN;
+
+/**
  * @brief Particle fields for the sink particles.
  *
  * All quantities related to gravity are stored in the associate #gpart.
@@ -98,20 +119,7 @@ struct sink {
   int N_neighbours;
 
   /* Convenient structure to hold data about the neighbour particles */
-  struct {
-    /* Current size of the array (should be the number of neighbours) */
-    int size;
-
-    /* Number of elements already allocated */
-    int allocated;
-
-    /* Track if the array has been sorted from the closest neighbour to the
-       farthest */
-    uint8_t is_sorted;
-
-    /* Array of the neighbour particles */
-    struct part* part_neighbours;
-  } neigbour_array ;
+  struct sink_neighbour_array neighbour_array ;
 
 #ifdef SWIFT_DEBUG_CHECKS
 
