@@ -105,7 +105,7 @@ INLINE static void sink_update_target_mass(struct sink* sink,
 #define NEIGHBOUR_ARRAY_PADDING 64
 
 /**
- * @brief Create the sink_neighbour array. 
+ * @brief Create the sink_neighbour array.
  *
  * This function is only used for the regulated accretion scheme.
  *
@@ -115,7 +115,7 @@ INLINE static sink_neighbour_array* sink_construct_neighbour_array(sink_neighbou
   if (array != NULL) {
     /* Starts with size=0, allocated=0, is_sorted=0 and part_neighbour=NULL */
     sink_neighbour_array result = { 0, 0, 0, NULL };
-    result.part_neighbours = calloc(NEIGHBOUR_ARRAY_PADDING, sizeof(struct part*));    
+    result.part_neighbours = calloc(NEIGHBOUR_ARRAY_PADDING, sizeof(struct part*));
     if (result.part_neighbours != NULL) {
       result.allocated = NEIGHBOUR_ARRAY_PADDING;
     } else {
@@ -128,7 +128,7 @@ INLINE static sink_neighbour_array* sink_construct_neighbour_array(sink_neighbou
 }
 
 /**
- * @brief Delete the sink_neighbour array. 
+ * @brief Delete the sink_neighbour array.
  *
  * This function is only used for the regulated accretion scheme.
  *
@@ -140,12 +140,12 @@ INLINE static void sink_delete_neighbour_array(sink_neighbour_array* array) {
     array->size = 0;
     array->allocated = 0;
     array->is_sorted = 0;
-  } 
+  }
   return;
 }
 
 /**
- * @brief Increases the size of the the sink_neighbour array. 
+ * @brief Increases the size of the the sink_neighbour array.
  *
  * This function is only used for the regulated accretion scheme.
  *
@@ -166,7 +166,7 @@ INLINE static sink_neighbour_array* sink_enlarge_neighbour_array(sink_neighbour_
 }
 
 /**
- * @brief Add a  particle to the sink_neighbour array. 
+ * @brief Add a  particle to the sink_neighbour array.
  *
  * This function is only used for the regulated accretion scheme.
  *
@@ -211,13 +211,13 @@ __attribute__((always_inline)) INLINE static void sink_first_init_sink(
   if (sink_props->do_regulated_accretion) {
     sp->N_neighbours = 0;
     sp->mass_interaction_init = 0.f;
-    sp->neighbour_array = malloc(sizeof(sink_neighbour_array));    
+    sp->neighbour_array = malloc(sizeof(sink_neighbour_array));
     message("Creating neighbour array after ICs...");
 
     if (sink_construct_neighbour_array(sp->neighbour_array) == NULL) {
       error("Could not construct sink neighbour_neighnour array. Aborting.");
     }
-    
+
     /* The r_cut is defined by the SmoothingLength field in the ICs. This
     field is optional for sinks. If it has not been given, the value of
     sp->r_cut is set to 0.0. So, check that r_cut is not 0. */
@@ -495,7 +495,7 @@ INLINE static void sink_copy_properties(
     if (sink_construct_neighbour_array(sink->neighbour_array) == NULL) {
       error("Could not construct sink neighbour_neighnour array. Aborting.");
     }
-    
+
   } else {
     sink->r_cut = e->sink_properties->cut_off_radius;
   }
@@ -996,4 +996,52 @@ INLINE static void sink_prepare_part_sink_formation(struct engine* e, struct cel
   } /* End of sink neighbour loop */
 }
 
+
+/*****************************************************************************/
+
+/**
+ * @brief Compute the $\mathcal{W}$ quantity that normalises the radial accretion
+ * timescale and the disk accretion timescale.
+ *
+ * This function is only used for the regulated accretion scheme.
+ *
+ * @param sp The #sink.
+ * @param sink_props The sink properties structure.
+ */
+INLINE static double sink_compute_W_regulated_accretion(struct sink* restrict sp,
+							const struct sink_props* sink_props) {
+  const int N_neighbours = sp->N_neighbours;
+  const struct part* parts_neighbours = *(sp->neighbour_array->part_neighbours);
+  const double H_sink = sp->r_cut / sink_props->f_interaction;
+  double W = 0.0;
+
+  /* Loop over the neighbours */
+  for (int i = 0 ; i < N_neighbours ; ++i) {
+    /* Get a pointer to the particle. */
+    const struct part* pi = &parts_neighbours[i];
+
+    /* Comoving distance */
+    const double dx[3] = {(sp->x[0] - pi->x[0]),
+			  (sp->x[1] - pi->x[1]),
+			  (sp->x[2] - pi->x[2])};
+    const double r2 = dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2];
+    const double r = sqrt(r2);
+
+    /* Kernel function. Notice that it uses h = sp->r_cut. */
+    const float ui = r / H_sink; /* The ratio of comoving removes the
+				       cosmo->a. That's why a was not used. */
+    /* Kernel of the part i */
+    double wi = 0.0;
+    kernel_eval_double(ui, &wi);
+    wi *= pow_dimension_plus_one(H_sink) ;
+
+    /* Compute the \mathcal{W} */
+    W += pi->mass * wi / pi->rho;
+  } /* End of neighbour loop */
+  return W;
+
+}
+
+
+    
 #endif /* SWIFT_GEAR_SINK_H */
