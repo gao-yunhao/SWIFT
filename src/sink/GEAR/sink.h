@@ -1039,6 +1039,7 @@ INLINE static double sink_compute_W_regulated_accretion(struct sink* restrict sp
     W += pi->mass * wi / pi->rho;
   } /* End of neighbour loop */
   return W;
+
 }
 
 /**
@@ -1103,5 +1104,56 @@ INLINE static double sink_compute_radial_accretion_timescale(struct sink* restri
   return t_radial;
 }
 
+/**
+ * @brief Compute the disk accretion timescale.
+ *
+ * This function is only used for the regulated accretion scheme.
+ *
+ * @param sp The #sink.
+ * @param cosmo The #cosmology structure.
+ * @param sink_props The sink properties structure.
+ * @param phys_const The structure containing the physical constants.
+ */
+INLINE static double sink_compute_disk_accretion_timescale(struct sink* restrict sp,
+							   const struct cosmology* cosmo,
+							   const struct sink_props* sink_props,
+							   const struct phys_const* phys_const) {
+  const int N_neighbours = sp->N_neighbours;
+  const struct part *parts_neighbours = *(sp->neighbour_array->part_neighbours);
+  const double W = sink_compute_W_regulated_accretion(sp, sink_props);
+  const double H_sink = sp->r_cut / sink_props->f_interaction ;
+  double t_disk = 0.0;
+
+  /* Compute \mathcal{W} */
+  /* Loop over the neighbours */
+  for (int i = 0 ; i < N_neighbours ; ++i) {
+    /* Get a pointer to the particle. */
+    const struct part* pi = &parts_neighbours[i];
+
+    /* Comoving distance */
+    const double dx[3] = {(sp->x[0] - pi->x[0]),
+			  (sp->x[1] - pi->x[1]),
+			  (sp->x[2] - pi->x[2])};
+    const double r2 = dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2];
+    const double r = sqrt(r2);
+
+    /* Kernel function. Notice that it uses h = sp->r_cut. */
+    const float ui = r / H_sink; /* The ratio of comoving removes the
+				       cosmo->a. That's why a was not used. */
+    /* Kernel of the part i */
+    double wi = 0.0;
+    kernel_eval_double(ui, &wi);
+    wi *= pow_dimension_plus_one(H_sink) ;
+
+    /* Compute disk timescale */
+    double sound_speed = hydro_get_comoving_soundspeed(pi);
+    t_disk = sqrt(r) * pi->mass * wi / (pi->rho * sound_speed*sound_speed);
+  } /* End of neighbour loop */
+
+  /* Multiply by the constant */
+  t_disk *= sqrt(phys_const->const_newton_G * sp->mass) / (sink_props->alpha_AMT * W)  ;
+
+  return t_disk;
+}
     
 #endif /* SWIFT_GEAR_SINK_H */
