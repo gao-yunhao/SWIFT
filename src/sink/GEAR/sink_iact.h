@@ -22,6 +22,9 @@
 /* Local includes */
 #include "gravity.h"
 #include "gravity_iact.h"
+#include "sink/GEAR/sink.h"
+#include "sink/GEAR/sink_part.h"
+#include <stddef.h>
 
 
 /**
@@ -212,8 +215,12 @@ runner_iact_nonsym_sinks_gas_swallow(const float r2, const float dx[3],
     /* Update the number of gas neighbours of this sink */
     si->N_neighbours += 1;
 
+    /* Add a ptr to the cell containing the gas */
+    pj->sink_data.cell = NULL;
+
     /* Now, allocate the memory to add one element to the neighbour array and
        add this element to the array. */
+    sink_add_part_neighbour_array(si->neighbour_array, pj);
 
   } else {
 
