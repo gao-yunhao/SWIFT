@@ -28,6 +28,7 @@
 #include "cell.h"
 #include "engine.h"
 #include "sink.h"
+#include "sink/GEAR/sink.h"
 #include "space_getsid.h"
 #include "timers.h"
 
@@ -574,6 +575,11 @@ void runner_do_sinks_gas_swallow(struct runner *r, struct cell *c, int timer) {
       }
     }
   } else {
+
+    if (e->sink_properties->do_regulated_accretion) {
+      runner_iact_nonsym_sinks_do_gas_swallow_regulated(e, s, c);
+      return ;
+    }
 
     /* Loop over all the gas particles in the cell
      * Note that the cell (and hence the parts) may be local or foreign. */
