@@ -19,10 +19,11 @@
 #ifndef SWIFT_SINK_STRUCT_DEFAULT_H
 #define SWIFT_SINK_STRUCT_DEFAULT_H
 
+#include <sys/types.h>
+
 /**
  * @brief Sink-related fields carried by each *gas* particle.
  */
-#include <sys/types.h>
 struct sink_part_data {
 
   /*! ID of the sink that will swallow this #part. */
