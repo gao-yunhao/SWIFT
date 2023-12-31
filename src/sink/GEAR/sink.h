@@ -29,6 +29,9 @@
 #include "cooling.h"
 #include "error.h"
 #include "feedback.h"
+#include "gravity.h"
+#include "gravity_iact.h"
+#include "hydro.h"
 #include "minmax.h"
 #include "physical_constants.h"
 #include "random.h"
@@ -1084,7 +1087,6 @@ INLINE static void sink_sort_neighbour_array(struct sink* sink) {
   return ;
 }
 
-
 /**
  * @brief Compute the $\mathcal{W}$ quantity that normalises the radial accretion
  * timescale and the disk accretion timescale.
@@ -1241,5 +1243,134 @@ INLINE static double sink_compute_disk_accretion_timescale(struct sink* restrict
 
   return t_disk;
 }
+
+/**
+ * @brief Compute the f exponent to compute the accretion timescale. The
+ * accretion timescale is given by: t_radial^(1-f) * t_disk^f.
+ *
+ * This function is only used for the regulated accretion scheme.
+ *
+ * @param sp The #sink.
+ * @param cosmo The #cosmology structure.
+ * @param sink_props The sink properties structure.
+ * @param phys_const The structure containing the physical constants.
+ */
+INLINE static double sink_compute_f_accretion_timescale(struct sink* restrict sp,
+							const struct cosmology* cosmo,
+							const struct sink_props* sink_props,
+							const struct phys_const* phys_const) {
+  const size_t N_neighbours = sp->neighbour_array->size;
+  const struct part* parts_neighbours = *(sp->neighbour_array->part_neighbours);
+  const double H_sink = sp->r_cut / sink_props->f_interaction * cosmo->a;
+  double f = 0.0;
+
+  double E_rot_denominator = 0.0 ;
+  double angular_momentum[3] = { 0, 0, 0 };
+
+  /* First compute the total angular momentum within the interaction zone */
+  /* Loop over the neighbours */
+  for (size_t i = 0 ; i < N_neighbours ; ++i) {
+    /* Get a pointer to the particle. */
+    const struct part* pi = &parts_neighbours[i];
+
+    const double mass_part = hydro_get_mass(pi);
+
+    /* Physical distance */
+    const double dx[3] = {(pi->x[0] - sp->x[0])*cosmo->a,
+			  (pi->x[1] - sp->x[1])*cosmo->a,
+			  (pi->x[2] - sp->x[2])*cosmo->a};
+
+  /* Compute the relative physical velocity between p and pi */
+    const double dv[3] = {(pi->v[0] - sp->v[0])*cosmo->a,
+			  (pi->v[1] - sp->v[1])*cosmo->a,
+			  (pi->v[2] - sp->v[2])*cosmo->a};
+
+    /* Compute specific angular momentum between sp and pi */
+    angular_momentum[0] += mass_part*(dx[1] * dv[2] - dx[2] * dv[1]);
+    angular_momentum[1] += mass_part*(dx[2] * dv[0] - dx[0] * dv[2]);
+    angular_momentum[2] += mass_part*(dx[0] * dv[1] - dx[1] * dv[0]);
+
+  } /* End of neighbour loop */
+
+  /* Then compute the rotation energy */
+  /* Loop over the neighbours */
+  for (size_t i = 0 ; i < N_neighbours ; ++i) {
+    /* Get a pointer to the particle. */
+    const struct part* pi = &parts_neighbours[i];
+
+    const double mass_part = hydro_get_mass(pi);
+
+    /* Comoving distance */
+    const double dx[3] = {(pi->x[0] - sp->x[0])*cosmo->a,
+			  (pi->x[1] - sp->x[1])*cosmo->a,
+			  (pi->x[2] - sp->x[2])*cosmo->a};
+
+    /* Compute the denominator of E_rot */
+    double scalar_product = dx[0]*angular_momentum[0] + dx[1]*angular_momentum[1] + dx[2]*angular_momentum[2];
+    E_rot_denominator += mass_part * scalar_product*scalar_product;
+
+  } /* End of neighbour loop */
+
+  double angular_momentum_2 = angular_momentum[0]*angular_momentum[0] + angular_momentum[1]*angular_momentum[1] + angular_momentum[2]*angular_momentum[2];
+  double E_rot = angular_momentum_2*angular_momentum_2 / (2.0* E_rot_denominator);
+
+  /* Finally, compute the gravitational energy */
+  double E_grav = 0.0 ;
+
+  float dummy;
+  float pot_sink_i_sink = 0.0;
+  float pot_sink_i_i = 0.0;
+  float pot_ij_i = 0.0 ;
+  float pot_ij_j = 0.0;
+
+  /* First neighbour loop */
+  for (size_t i = 0; i < N_neighbours ; ++i) {
+    /* Get a pointer to the particle. */
+    const struct part* pi = &parts_neighbours[i];
+    const float h_i = pi->h;
+
+    /* Physical distance */
+    const float dx_sink_i[3] = {(pi->x[0] - sp->x[0])*cosmo->a,
+				(pi->x[1] - sp->x[1])*cosmo->a,
+				(pi->x[2] - sp->x[2])*cosmo->a};
+    const float r2_sink_i = dx_sink_i[0] * dx_sink_i[0] + dx_sink_i[1] * dx_sink_i[1] + dx_sink_i[2] * dx_sink_i[2];
+
+    /* Compute the potentials */
+    runner_iact_grav_pp_full(r2_sink_i, H_sink*H_sink, 1.f/H_sink, 1.f/(H_sink*H_sink*H_sink), sp->mass, &dummy, &pot_sink_i_sink);
+    runner_iact_grav_pp_full(r2_sink_i, h_i*h_i, 1.f/h_i, 1.f/(h_i*h_i*h_i), pi->mass, &dummy, &pot_sink_i_i);
+
+    /* Add the contribution sink-i to the gravitional energy */
+    E_grav += 0.5*(pi->mass*pot_sink_i_sink + sp->mass*pot_sink_i_i);
+
+    /* Second neighbour loop */
+    for (size_t j = 0; j < N_neighbours ; ++j) {
+      if (j != i){
+	/* Get a pointer to the particle. */
+	const struct part* pj = &parts_neighbours[j];
+	const float h_j = pj->h;
+
+	/* Physical distance */
+	const float dx_ij[3] = {(pi->x[0] - pj->x[0])*cosmo->a,
+				(pi->x[1] - pj->x[1])*cosmo->a,
+				(pi->x[2] - pj->x[2])*cosmo->a};
+	const float r2_ij = dx_ij[0] * dx_ij[0] + dx_ij[1] * dx_ij[1] + dx_ij[2] * dx_ij[2];
+
+	/* Compute the potentials */
+	runner_iact_grav_pp_full(r2_ij, h_i*h_i, 1.f/h_i, 1.f/(h_i*h_i*h_i), pi->mass, &dummy, &pot_ij_i);
+	runner_iact_grav_pp_full(r2_ij, h_j*h_j, 1.f/h_j, 1.f/(h_j*h_j*h_j), pj->mass, &dummy, &pot_ij_j);
+
+	/* Add the contribution i-j to the gravitional energy */
+	E_grav += 0.25*(pj->mass*pot_ij_i + pi->mass*pot_ij_j);
+      }
+    } /* End of second neighbour loop */
+  } /* End of first neighbour loop */
+
+  E_grav *= phys_const->const_newton_G;
+
+  f = min(2.f*E_rot/fabs(E_grav), 1);
+
+  return f;
+}
+
 
 #endif /* SWIFT_GEAR_SINK_H */
