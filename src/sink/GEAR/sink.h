@@ -209,7 +209,7 @@ INLINE static size_t sink_add_part_neighbour_array(sink_neighbour_array* array,
  * @param sink_props The properties of the sink particles scheme.
  */
 __attribute__((always_inline)) INLINE static void sink_first_init_sink(
-    struct sink* sp, const struct sink_props* sink_props) {
+								       struct sink* sp, const struct sink_props* sink_props, const struct engine* e) {
 
   if (sink_props->do_regulated_accretion) {
     sp->N_neighbours = 0;
@@ -244,6 +244,11 @@ __attribute__((always_inline)) INLINE static void sink_first_init_sink(
   sp->swallowed_angular_momentum[2] = 0.f;
 
   sink_mark_sink_as_not_swallowed(&sp->merger_data);
+
+  /* Bug fix: Setup the target mass for sink formation after reading the
+     ICs. Otherwise sink->target_mass = 0.0 and a sink present in the IC spawn
+     a star of mass 0.0... */
+  sink_update_target_mass(sp, sink_props, e, 0);
 }
 
 /**
