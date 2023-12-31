@@ -1004,6 +1004,88 @@ INLINE static void sink_prepare_part_sink_formation(struct engine* e, struct cel
 /*****************************************************************************/
 
 /**
+ * @brief Compute the comoving distance squared between a #sink and a #part.
+ *
+ * @param si The #sink particle.
+ * @param pj The gas #part.
+ */
+INLINE static double sink_compute_sink_gas_comoving_distance_squared(struct sink* si, struct part* pj) {
+    /* Comoving distance between sink and gas i */
+   double dx[3] = {(si->x[0] - pj->x[0]),
+		   (si->x[1] - pj->x[1]),
+		   (si->x[2] - pj->x[2])};
+   double r2 = dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2];
+   return r2;
+}
+
+/**
+ * @brief Sort the neighbour array of a #sink in ascending order for the
+ * distance between the parts and the #sink.
+ *
+ * @param sink The #sink particle.
+ */
+INLINE static void sink_sort_neighbour_array(struct sink* sink) {
+
+  sink_neighbour_array* neighbour_array = sink->neighbour_array;
+  size_t size = neighbour_array->size;
+  double r2_i = 0.0;
+  int j = 0;
+
+  /* Array of size <= 1 are already sorted. */
+  if (size <= 1) {
+    neighbour_array->is_sorted = 1;
+    return;
+  }
+
+  for (size_t i = 1 ; i < size ; i++) {
+    /* Get a handle on the part. */
+    struct part *const pi = neighbour_array->part_neighbours[i];
+
+    /* Comoving distance between sink and gas i */
+    r2_i = sink_compute_sink_gas_comoving_distance_squared(sink, pi);
+
+    /* Get a handle on the part. */
+    j = i - 1;
+    struct part* pj = neighbour_array->part_neighbours[j];
+    while (j >= 0 && sink_compute_sink_gas_comoving_distance_squared(sink, pj) > r2_i) {
+      /* message("j = %i", j); */
+      neighbour_array->part_neighbours[j+1] = pj;
+      j -= 1;
+
+      /* Attention, when j=-1 at this stage, this points outside the array ! However,
+      since the while loop first verify that j>=0, this should not result in
+      segfault. */
+      pj = neighbour_array->part_neighbours[j];
+    }
+    neighbour_array->part_neighbours[j+1] = pi;
+  }
+
+#ifdef SWIFT_DEBUG_CHECKS
+  double r2 = 0.0;
+  double r2_previous = 0.0;
+
+  message("Verification that the array is well sorted...");
+  for (size_t i = 1 ; i < size ; ++i) {
+
+    /* Get a handle on the part. */
+    struct part *const pi = neighbour_array->part_neighbours[i];
+    struct part *const pi_minus_one = neighbour_array->part_neighbours[i-1];
+
+    /* Comoving distance between sink and gas i */
+    r2 = sink_compute_sink_gas_comoving_distance_squared(sink, pi);
+    r2_previous = sink_compute_sink_gas_comoving_distance_squared(sink, pi_minus_one);
+
+    /* If particle i-1 is farther than particle i, the sort failed */
+    if (r2_previous > r2) {
+      error("The sort was not performed properly. Particle i=%zu (%lld) is closer than particle (i-1)=%zu (%lld) (out of %i neighbours).", i+1, pi->id, i, pi_minus_one->id, sink->N_neighbours);
+    }
+  }
+#endif
+  return ;
+}
+
+
+/**
  * @brief Compute the $\mathcal{W}$ quantity that normalises the radial accretion
  * timescale and the disk accretion timescale.
  *
