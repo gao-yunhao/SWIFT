@@ -20,10 +20,14 @@
 #define SWIFT_GEAR_SINKS_IACT_H
 
 /* Local includes */
+#include "error.h"
 #include "gravity.h"
 #include "gravity_iact.h"
+#include "hydro.h"
 #include "sink/GEAR/sink.h"
 #include "sink/GEAR/sink_part.h"
+#include "timeline.h"
+#include <math.h>
 #include <stddef.h>
 
 
