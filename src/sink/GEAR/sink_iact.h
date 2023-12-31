@@ -503,10 +503,11 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
 	 the fct sink_mark_part_as_swallowed(&p->sink_data). When leaving this
 	 function, the part id will be -2, preventing it to be reswallowed
 	 afterwards. But it will allow the cell to update the ti_beg_max. */
-      /* Check that the ti_beg_max will be updated properly !!!! */
       /* Check how the nibbling is handled in the BH */
       /* Pay attention to update the gpart accordingly ! */
 
+      /* Relock space ...*/
+      sink_swallow_part_regulated_accretion(si, pj, NULL, cosmo, delta_m_j);
 
       
       /* Quick angular momentum feedback */
