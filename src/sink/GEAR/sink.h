@@ -1377,5 +1377,85 @@ INLINE static double sink_compute_f_accretion_timescale(struct sink* restrict sp
   return f;
 }
 
+/**
+ * @brief Update the properties of a sink particles by swallowing
+ * a gas particle in the regulated accretion scheme.
+ *
+ * @param sp The #sink to update.
+ * @param p The #part that is swallowed.
+ * @param xp The #xpart that is swallowed.
+ * @param cosmo The current cosmological model.
+ * @param delta_mass The mass removed from the #part during the regulated accretion.
+ */
+__attribute__((always_inline)) INLINE static void sink_swallow_part_regulated_accretion(
+    struct sink* sp, const struct part* p, const struct xpart* xp,
+    const struct cosmology* cosmo, const double delta_mass) {
+
+  /* Notice that if a gas is entirely swallowed, we have delta_mass = gas_mass,
+     since we have not set the gas_mass to 0. Also, sink_data.swallow_id is >= 0.
+     However, if the gas is not entirely swallowed, delta_mass != gas_mass and
+     sink_data.swallow_id < 0. */
+
+  /* Get the current dynamical masses */
+  const float gas_mass = hydro_get_mass(p);
+  const float sink_mass = sp->mass;
+
+  /* store the mass of the sink part i */
+  /* const float sink_mass_old = sp->mass; */
+
+  /* Increase the dynamical mass of the sink. */
+  sp->mass += delta_mass;
+  sp->gpart->mass += delta_mass;
+
+  /* Physical velocity difference between the particles */
+  const float dv[3] = {(sp->v[0] - p->v[0]) * cosmo->a_inv,
+                       (sp->v[1] - p->v[1]) * cosmo->a_inv,
+                       (sp->v[2] - p->v[2]) * cosmo->a_inv};
+
+  /* Physical distance between the particles */
+  const float dx[3] = {(sp->x[0] - p->x[0]) * cosmo->a,
+                       (sp->x[1] - p->x[1]) * cosmo->a,
+                       (sp->x[2] - p->x[2]) * cosmo->a};
+
+  /* Collect the swallowed angular momentum */
+  sp->swallowed_angular_momentum[0] +=
+      delta_mass * (dx[1] * dv[2] - dx[2] * dv[1]);
+  sp->swallowed_angular_momentum[1] +=
+      delta_mass * (dx[2] * dv[0] - dx[0] * dv[2]);
+  sp->swallowed_angular_momentum[2] +=
+      delta_mass * (dx[0] * dv[1] - dx[1] * dv[0]);
+
+  /* Update the sink momentum */
+  const float sink_mom[3] = {sink_mass * sp->v[0] + delta_mass * p->v[0],
+                             sink_mass * sp->v[1] + delta_mass * p->v[1],
+                             sink_mass * sp->v[2] + delta_mass * p->v[2]};
+
+  sp->v[0] = sink_mom[0] / sp->mass;
+  sp->v[1] = sink_mom[1] / sp->mass;
+  sp->v[2] = sink_mom[2] / sp->mass;
+  sp->gpart->v_full[0] = sp->v[0];
+  sp->gpart->v_full[1] = sp->v[1];
+  sp->gpart->v_full[2] = sp->v[2];
+
+  /* Update the sink metal masses fraction */
+  /* Look at the BH nibbling */
+  /* chemistry_add_part_to_sink(sp, p, sink_mass_old); */
+
+  /* If the sink swallowed entirely a gas particle */
+  if (gas_mass == delta_mass) {
+    sp->number_of_gas_swallows++;
+    sp->number_of_direct_gas_swallows++;
+  }
+  
+#ifdef SWIFT_DEBUG_CHECKS
+  const float dr = sqrt(dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2]);
+  message("sink %lld swallow gas particle %lld. "
+	  "(Mass = %e, "
+	  "Delta_v = [%f, %f, %f] U_V, "
+	  "Delta_x = [%f, %f, %f] U_L, "
+	  "Delta_v_rad = %f)", sp->id, p->id, sp->mass, -dv[0], -dv[1], -dv[2], -dx[0], -dx[1], -dx[2],
+      (dv[0] * dx[0] + dv[1] * dx[1] + dv[2] * dx[2]) / dr);
+#endif
+}
 
 #endif /* SWIFT_GEAR_SINK_H */
