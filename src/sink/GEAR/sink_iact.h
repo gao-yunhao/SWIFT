@@ -441,16 +441,19 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
       /* Check if the timestep of the part is small enough to accrete it
 	 entirely */
       if (dt_pj < dt_criterion) {
-	delta_M_remaining -= pj->mass;
-
 	/* Do not put the mass of the part to zero, it will be swallowed
 	   properly in runner_do_sinks_gas_swallow(). If the mass is set to
 	   zero, the hydro runs into problems. */
 
-	/* Mark this part to be swallowed */
+	/* Mark this part to be swallowed entirely */
 	pj->sink_data.swallow_id = si->id;
 
-	message("Criterion passed ! dt_part = %e", dt_pj);
+	/* Update mass removed from the part to update the sink properties */
+	delta_m_j = pj->mass ;
+
+	/* Update the remaining mass to continue swallowing. */
+	delta_M_remaining -= pj->mass;
+	/* message("Criterion passed ! dt_part = %e", dt_pj); */
       } else {
 
 	double mass_part = hydro_get_mass(pj);
@@ -459,8 +462,9 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
 	     delta_M_remaining from the part, The accretion is finished */
 	  pj->mass -= delta_M_remaining;
 	  pj->gpart->mass -= delta_M_remaining;
-	  
-	  delta_M_remaining = 0.0; /* Nothing remains to be eaten. */
+
+	  /* Nothing remains to be eaten. */
+	  delta_M_remaining = 0.0; 
 
  	  /* Do not mark the part to be swallowed */
 
@@ -472,6 +476,10 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
 	  /* Mark this part to be swallowed */
 	  pj->sink_data.swallow_id = si->id;
 
+	  /* Update mass removed from the part to update the sink properties */
+	  delta_m_j = pj->mass ;
+
+	  /* Update the remaining mass to continue swallowing. */
 	  delta_M_remaining -= mass_part;
 	} /* Enf of gas accretion treatment */
       } /* End of special criterion */
