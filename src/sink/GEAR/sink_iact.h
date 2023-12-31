@@ -456,7 +456,7 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
 	  /* If the particle is *more massive* than delta_M_remaining, remove
 	     delta_M_remaining from the part, The accretion is finished */
 	  pj->mass -= delta_M_remaining;
-	  /* UPDATE THE GPARTS */
+	  pj->gpart->mass -= delta_M_remaining;
 	  
 	  delta_M_remaining = 0.0; /* Nothing remains to be eaten. */
 
