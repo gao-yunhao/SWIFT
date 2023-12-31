@@ -315,4 +315,195 @@ runner_iact_nonsym_sinks_gas_swallow(const float r2, const float dx[3],
 #endif
 }
 
+/**
+ * @brief Swallow the gas
+ *
+ * @param
+ */
+INLINE static void
+runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space *s,
+						  struct cell* c) {
+
+  const struct cosmology* cosmo = e->cosmology;
+  const int with_cosmology = e->policy & engine_policy_cosmology;
+  const struct phys_const* phys_const = e->physical_constants;
+  const struct sink_props* sink_props = e->sink_properties;
+
+  /* Get a pointer to the sinks in the cell */
+  struct sink *sinks = c->sinks.parts;
+  const size_t nr_sink = c->sinks.count;
+
+  /* Loop over all sinks in the cell */
+  for (size_t i = 0; i < nr_sink ; ++i) {
+    /* Get a handle on the sink. */
+    struct sink *si = &sinks[i];
+    sink_neighbour_array* neighbour_array = si->neighbour_array;
+
+    /* Skip inactive particles */
+    if (!sink_is_active(si, e)) continue;
+
+    /* If sp does not have any neighbour, continue with the next sink */
+    if (si->N_neighbours == 0) continue;
+
+    /* Check if the neighbour array is sorted. If it is already sorted, the
+       job has already been done. */
+    if (neighbour_array->is_sorted) {
+      /* The job has already been done, we can continue to the next sink. */
+      message("Array already sorted");
+      continue;
+    }
+
+    /* This should only happen if we read a sink from ICs. */
+    if (si->mass_interaction_init == 0.0) {
+      si->mass_interaction_init = si->mass_interaction_current;
+    }
+
+    /* Sort the neigbour array from the closest neigbour to the farthest from
+       the sink. */
+    sink_sort_neighbour_array(si);
+
+    /* Compute the accretion timescale */
+    const double t_rad = sink_compute_radial_accretion_timescale(si, cosmo, sink_props);
+    const double t_disk = sink_compute_disk_accretion_timescale(si, cosmo, sink_props, phys_const);
+    const double f = sink_compute_f_accretion_timescale(si, cosmo, sink_props, phys_const);
+    double t_acc = pow(t_rad, 1-f) * pow(t_disk, f);
+    message("t_rad = %e", t_rad);
+    message("t_disk = %e", t_disk);
+    message("f = %lf", f);
+    message("t_acc = %e", t_acc);
+
+
+    /* If the mass in the interaction zone exceeds the mass in the interaction
+    zone at the creation of the sink, decrease t_acc to accrete the excess of
+    mass more quickly. */
+    if (si->mass_interaction_current > si->mass_interaction_init) {
+      t_acc /= ( (si->mass_interaction_current/si->mass_interaction_init) *  (si->mass_interaction_current/si->mass_interaction_init));
+      message("Faster accretion, t_acc = %e", t_acc);
+      message("mass_interaction_current = %e", si->mass_interaction_current);
+      message("mass_interaction_init = %e", si->mass_interaction_init);
+    }
+
+    /* Get particle time-step */
+    double dt_sink = 0.0;
+    const integertime_t ti_step_sink = get_integer_timestep(si->time_bin);
+    const integertime_t ti_begin_sink = get_integer_time_begin(e->ti_current, si->time_bin);
+    if (with_cosmology) {
+      dt_sink = cosmology_get_delta_time(cosmo, ti_begin_sink,
+					 ti_begin_sink + ti_step_sink);
+    } else {
+      dt_sink = get_timestep(si->time_bin, e->time_base);
+      /* message("No cosmo"); */
+    }
+
+    /* message("ti_step_sink = %lli", ti_step_sink); */
+    /* message("ti_begin_sink = %lli", ti_begin_sink); */
+
+    /* Compute the accreted mass */
+    const double delta_M = si->mass_interaction_current * (1 - exp(- dt_sink/t_acc));
+    /* message("si->mass_interaction_current = %e", si->mass_interaction_current); */
+    /* message("dt_sink = %e", dt_sink); */
+    message("delta_M = %e", delta_M);
+    /* message("r_acc = %e", si->r_cut); */
+    message("N_neighbour = %i", si->N_neighbours);
+
+
+    /* Quick angular momentum feedback */
+    /* Compute the amount of angular momentum transferred */
+
+    double delta_M_remaining = delta_M;
+    const double r_cut_3 = si->r_cut*si->r_cut*si->r_cut*cosmo->a*cosmo->a*cosmo->a;
+    const double dt_criterion = sink_props->tol_param*sqrt(r_cut_3/(phys_const->const_newton_G*si->mass_interaction_current));
+
+
+    /* message("dt_criterion = %lf", dt_criterion); */
+
+    /* Loop over the neighbour part */
+    for (size_t j = 0; j < neighbour_array->size ; ++j) {
+      /* Get a handle on the part. */
+      struct part *pj = neighbour_array->part_neighbours[j];
+
+      if (delta_M_remaining <= 0.0) break;
+
+      /* Ignore inhibited particles (they have already been removed!) */
+      if (part_is_inhibited(pj, e)) {
+	message("Part is inhibited");
+	continue;
+      }
+
+      /* message("delta_M_remaining = %lf", delta_M_remaining); */
+
+      /* If this part has already been entirely swallowed, skip it */
+      if (pj->sink_data.swallow_id >= 0){
+	message("Part has already been swallowed entirely");
+	continue;
+      }
+
+      /* Get the pj timestep */
+      double dt_pj = 0.0;
+      const integertime_t ti_step_pj = get_integer_timestep(pj->time_bin);
+      const integertime_t ti_begin_pj = get_integer_time_begin(e->ti_current, pj->time_bin);
+      if (with_cosmology) {
+	dt_pj = cosmology_get_delta_time(cosmo, ti_begin_pj,
+					   ti_begin_pj + ti_step_pj);
+      } else {
+	dt_pj = get_timestep(pj->time_bin, e->time_base);
+      }
+
+
+      /* Lock the space as we are going to work directly on the neigbour list */
+      lock_lock(&s->lock);
+
+      /* message("dt_pj = %lf", dt_pj); */
+      /* Check if the timestep of the part is small enough to accrete it
+	 entirely */
+
+      /* Chercher dans GANDALF comment ce cas est géré... */
+      if (dt_pj < dt_criterion) {
+	/* delta_M_remaining -= pj->mass; */
+	delta_M_remaining = 0.0;
+
+	/* DO NOT PUT IT TO ZERO ---> IT WILL BE SWALLOED LATER PROPERLY */
+	/* HAVE YOU THOUGHT ABOUT THE XPART AND THE GPART DATA ? YOUR FORGET
+	   THEM !!!*/
+	/* pj->mass = 0.0; */
+
+	/* Mark this part as swallowed */
+	pj->sink_data.swallow_id = si->id;
+
+	message("Criterion passed !");
+      } else {
+
+	double mass_part = hydro_get_mass(pj);
+	if (mass_part >= delta_M_remaining) {
+	  /* If the particle is more massive than delta_M_remaining, remove delta_M_remaining
+	     from the part and stop the loop. The accretion is finished */
+	  pj->mass -= delta_M_remaining;
+	  delta_M_remaining = 0.0; /* Nothing remains to be eaten */
+
+	  /* VERIFY THAT THE MASS IS NOT == 0 */
+	  /* TREAT THE CASE MASS_PART = DELAT_M SEPARATELY */
+
+	} else {
+	  /* If the particle is less massive than delta_M, put its mass to 0 */
+	  /* DO NOT PUT IT TO ZERO ---> IT WILL BE SWALLOWED LATER PROPERLY */
+
+	  /* pj->mass = 0.0; */
+
+	  /* Mark this part as swallowed */
+	  pj->sink_data.swallow_id = si->id;
+
+	  delta_M_remaining -= mass_part;
+	}
+	message("pj->mass = %e", pj->mass);
+      }
+      /* Release the space as we are done updating the part */
+      if (lock_unlock(&s->lock) != 0) error("Failed to unlock the space.");
+
+    }  /* End of neighbour loop */
+
+  } /* End of sink loop */
+
+  return ;
+}
+
 #endif
