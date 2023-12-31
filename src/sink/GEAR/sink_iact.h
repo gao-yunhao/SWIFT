@@ -492,8 +492,6 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
 	 contains the id of sink that swallows it. In such case, here we do not
 	 update the sink nor remove it; both things are done properly in
 	 runner_do_sinks_gas_swallow(). */
-
-      
       /* Finally, I changed my mind. We'll change depending on Yves' or
 	 Matthieu's recommandation. I will update the sink here for all
 	 cases and remove the part here, by copying the code and adapting
@@ -503,12 +501,16 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
 	 the fct sink_mark_part_as_swallowed(&p->sink_data). When leaving this
 	 function, the part id will be -2, preventing it to be reswallowed
 	 afterwards. But it will allow the cell to update the ti_beg_max. */
-      /* Check how the nibbling is handled in the BH */
       /* Pay attention to update the gpart accordingly ! */
 
-      /* Relock space ...*/
+      /* Relock space, we are updating the part. */
+      lock_lock(&s->lock);
+
       sink_swallow_part_regulated_accretion(si, pj, NULL, cosmo, delta_m_j);
 
+      /* Release the space as we are done updating the part. */
+      if (lock_unlock(&s->lock) != 0)
+	error("Failed to unlock the space.");      
 
     }  /* End of neighbour loop */
 
