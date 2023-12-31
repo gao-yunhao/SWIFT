@@ -379,9 +379,6 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
     mass more quickly. */
     if (si->mass_interaction_current > si->mass_interaction_init) {
       t_acc /= ( (si->mass_interaction_current/si->mass_interaction_init) *  (si->mass_interaction_current/si->mass_interaction_init));
-      message("Faster accretion, t_acc = %e", t_acc);
-      message("mass_interaction_current = %e", si->mass_interaction_current);
-      message("mass_interaction_init = %e", si->mass_interaction_init);
     }
 
     /* Get particle time-step */
@@ -393,49 +390,35 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
 					 ti_begin_sink + ti_step_sink);
     } else {
       dt_sink = get_timestep(si->time_bin, e->time_base);
-      /* message("No cosmo"); */
     }
-
-    /* message("ti_step_sink = %lli", ti_step_sink); */
-    /* message("ti_begin_sink = %lli", ti_begin_sink); */
 
     /* Compute the accreted mass */
     const double delta_M = si->mass_interaction_current * (1 - exp(- dt_sink/t_acc));
-    /* message("si->mass_interaction_current = %e", si->mass_interaction_current); */
-    /* message("dt_sink = %e", dt_sink); */
     message("delta_M = %e", delta_M);
-    /* message("r_acc = %e", si->r_cut); */
     message("N_neighbour = %i", si->N_neighbours);
-
-
-    /* Quick angular momentum feedback */
-    /* Compute the amount of angular momentum transferred */
 
     double delta_M_remaining = delta_M;
     const double r_cut_3 = si->r_cut*si->r_cut*si->r_cut*cosmo->a*cosmo->a*cosmo->a;
     const double dt_criterion = sink_props->tol_param*sqrt(r_cut_3/(phys_const->const_newton_G*si->mass_interaction_current));
 
 
-    /* message("dt_criterion = %lf", dt_criterion); */
+    message("dt_criterion = %lf", dt_criterion);
 
     /* Loop over the neighbour part */
     for (size_t j = 0; j < neighbour_array->size ; ++j) {
       /* Get a handle on the part. */
       struct part *pj = neighbour_array->part_neighbours[j];
 
+      /* If there is no remaining mass, stop */
       if (delta_M_remaining <= 0.0) break;
 
       /* Ignore inhibited particles (they have already been removed!) */
       if (part_is_inhibited(pj, e)) {
-	message("Part is inhibited");
 	continue;
       }
 
-      /* message("delta_M_remaining = %lf", delta_M_remaining); */
-
       /* If this part has already been entirely swallowed, skip it */
       if (pj->sink_data.swallow_id >= 0){
-	message("Part has already been swallowed entirely");
 	continue;
       }
 
@@ -450,55 +433,76 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
 	dt_pj = get_timestep(pj->time_bin, e->time_base);
       }
 
-
       /* Lock the space as we are going to work directly on the neigbour list */
       lock_lock(&s->lock);
 
-      /* message("dt_pj = %lf", dt_pj); */
       /* Check if the timestep of the part is small enough to accrete it
 	 entirely */
-
-      /* Chercher dans GANDALF comment ce cas est géré... */
       if (dt_pj < dt_criterion) {
-	/* delta_M_remaining -= pj->mass; */
-	delta_M_remaining = 0.0;
+	delta_M_remaining -= pj->mass;
 
-	/* DO NOT PUT IT TO ZERO ---> IT WILL BE SWALLOED LATER PROPERLY */
-	/* HAVE YOU THOUGHT ABOUT THE XPART AND THE GPART DATA ? YOUR FORGET
-	   THEM !!!*/
-	/* pj->mass = 0.0; */
+	/* Do not put the mass of the part to zero, it will be swallowed
+	   properly in runner_do_sinks_gas_swallow(). If the mass is set to
+	   zero, the hydro runs into problems. */
 
-	/* Mark this part as swallowed */
+	/* Mark this part to be swallowed */
 	pj->sink_data.swallow_id = si->id;
 
-	message("Criterion passed !");
+	message("Criterion passed ! dt_part = %e", dt_pj);
       } else {
 
 	double mass_part = hydro_get_mass(pj);
-	if (mass_part >= delta_M_remaining) {
-	  /* If the particle is more massive than delta_M_remaining, remove delta_M_remaining
-	     from the part and stop the loop. The accretion is finished */
+	if (mass_part > delta_M_remaining) {
+	  /* If the particle is *more massive* than delta_M_remaining, remove
+	     delta_M_remaining from the part, The accretion is finished */
 	  pj->mass -= delta_M_remaining;
-	  delta_M_remaining = 0.0; /* Nothing remains to be eaten */
+	  /* UPDATE THE GPARTS */
+	  
+	  delta_M_remaining = 0.0; /* Nothing remains to be eaten. */
 
-	  /* VERIFY THAT THE MASS IS NOT == 0 */
-	  /* TREAT THE CASE MASS_PART = DELAT_M SEPARATELY */
+ 	  /* Do not mark the part to be swallowed */
 
-	} else {
-	  /* If the particle is less massive than delta_M, put its mass to 0 */
-	  /* DO NOT PUT IT TO ZERO ---> IT WILL BE SWALLOWED LATER PROPERLY */
+	} else { /* If the particle is *less massive* than delta_M, mark it to be swallowed. */
+	  /* Do not put the mass of the part to zero, it will be swallowed
+	   properly in runner_do_sinks_gas_swallow(). If the mass is set to
+	   zero, the hydro runs into problems. */
 
-	  /* pj->mass = 0.0; */
-
-	  /* Mark this part as swallowed */
+	  /* Mark this part to be swallowed */
 	  pj->sink_data.swallow_id = si->id;
 
 	  delta_M_remaining -= mass_part;
-	}
-	message("pj->mass = %e", pj->mass);
-      }
+	} /* Enf of gas accretion treatment */
+      } /* End of special criterion */
+
       /* Release the space as we are done updating the part */
       if (lock_unlock(&s->lock) != 0) error("Failed to unlock the space.");
+
+      /* Update the sink properties */
+      /* If the particle has been entirely swallowed, its sink_data.swallow_id
+	 contains the id of sink that swallows it. In such case, here we do not
+	 update the sink nor remove it; both things are done properly in
+	 runner_do_sinks_gas_swallow(). */
+
+      
+      /* Finally, I changed my mind. We'll change depending on Yves' or
+	 Matthieu's recommandation. I will update the sink here for all
+	 cases and remove the part here, by copying the code and adapting
+	 it. Then, to make sure the cell gets an updated value of
+	 ti_beg_max, I won't end the runner_do_sinks_gas_swallow() after
+	 the current fct. I will just mark the part as swalloed with
+	 the fct sink_mark_part_as_swallowed(&p->sink_data). When leaving this
+	 function, the part id will be -2, preventing it to be reswallowed
+	 afterwards. But it will allow the cell to update the ti_beg_max. */
+      /* Check that the ti_beg_max will be updated properly !!!! */
+      /* Check how the nibbling is handled in the BH */
+      /* Pay attention to update the gpart accordingly ! */
+
+
+      
+      /* Quick angular momentum feedback */
+      /* Compute the amount of angular momentum transferred */
+	
+
 
     }  /* End of neighbour loop */
 
