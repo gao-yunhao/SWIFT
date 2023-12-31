@@ -215,7 +215,10 @@ runner_iact_nonsym_sinks_gas_swallow(const float r2, const float dx[3],
     /* Update the number of gas neighbours of this sink */
     si->N_neighbours += 1;
 
-    /* Add a ptr to the cell containing the gas */
+    /* Update the mass in the interaction zone */
+    si->mass_interaction_current += hydro_get_mass(pj);
+
+    /* Add a ptr to the cell containing the gas. TO BE REMOVED */
     pj->sink_data.cell = NULL;
 
     /* Now, allocate the memory to add one element to the neighbour array and
