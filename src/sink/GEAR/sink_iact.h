@@ -509,13 +509,14 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
       /* Relock space ...*/
       sink_swallow_part_regulated_accretion(si, pj, NULL, cosmo, delta_m_j);
 
-      
-      /* Quick angular momentum feedback */
-      /* Compute the amount of angular momentum transferred */
-	
-
 
     }  /* End of neighbour loop */
+
+    
+    /* Quick angular momentum feedback */
+    /* Do no do it in the neighbour loop because 1) it should have its own task
+       and 2) Hubber et al 2013 does it a the end. Why ? Think about it. */
+      /* Compute the amount of angular momentum transferred */
 
   } /* End of sink loop */
 
