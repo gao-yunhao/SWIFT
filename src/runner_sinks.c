@@ -576,9 +576,9 @@ void runner_do_sinks_gas_swallow(struct runner *r, struct cell *c, int timer) {
     }
   } else {
 
+    /* For regulated accretion, do the job now that you know all neigbours */
     if (e->sink_properties->do_regulated_accretion) {
       runner_iact_nonsym_sinks_do_gas_swallow_regulated(e, s, c);
-      return ;
     }
 
     /* Loop over all the gas particles in the cell
