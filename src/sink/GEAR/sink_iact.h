@@ -393,16 +393,18 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
     }
 
     /* Compute the accreted mass */
-    const double delta_M = si->mass_interaction_current * (1 - exp(- dt_sink/t_acc));
-    message("delta_M = %e", delta_M);
+    double delta_M_remaining = si->mass_interaction_current * (1 - exp(- dt_sink/t_acc));
+
+    /* Mass removed from a particle. Used to update the sink*/
+    double delta_m_j = 0.0 ; 
+    message("delta_M = %e", delta_M_remaining);
     message("N_neighbour = %i", si->N_neighbours);
 
-    double delta_M_remaining = delta_M;
+    /* Compute the delta t for the special "Toomre criterion" */
+    /* Give an explanation...*/
     const double r_cut_3 = si->r_cut*si->r_cut*si->r_cut*cosmo->a*cosmo->a*cosmo->a;
     const double dt_criterion = sink_props->tol_param*sqrt(r_cut_3/(phys_const->const_newton_G*si->mass_interaction_current));
-
-
-    message("dt_criterion = %lf", dt_criterion);
+    /* message("dt_criterion = %lf", dt_criterion); */
 
     /* Loop over the neighbour part */
     for (size_t j = 0; j < neighbour_array->size ; ++j) {
