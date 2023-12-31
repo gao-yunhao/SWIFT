@@ -72,11 +72,6 @@ struct sink_part_data {
 
   /* Mass in the interaction zone at the conversion of this part to sink */
   float mass_interaction_init;
-
-  /* Cell containing this part. The goal of this is to track in which cells are
-     the neighbours and to update the properties of the particles if the tasks
-     are active for the right cell. This should avoid problems. */
-  struct cell* cell;
 };
 
 /**
