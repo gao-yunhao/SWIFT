@@ -116,6 +116,9 @@ struct sink {
   /* Mass in the interaction zone at the creation of the sink */
   float mass_interaction_init ;
 
+  /* Mass in the interaction zone at current time */
+  float mass_interaction_current;
+
   /* Number of neighbours in interaction zone */
   int N_neighbours;
 
