@@ -1073,16 +1073,16 @@ INLINE static double sink_compute_radial_accretion_timescale(struct sink* restri
     const struct part* pi = &parts_neighbours[i];
 
     /* Comoving distance */
-    const double dx[3] = {(sp->x[0] - pi->x[0]),
-			  (sp->x[1] - pi->x[1]),
-			  (sp->x[2] - pi->x[2])};
+    const double dx[3] = {(pi->x[0] - sp->x[0]),
+			  (pi->x[1] - sp->x[1]),
+			  (pi->x[2] - sp->x[2])};
     const double r2 = dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2];
     const double r = sqrt(r2);
 
     /* Relative velocity */
-    const double dv[3] = {(sp->v[0] - pi->v[0]),
-			  (sp->v[1] - pi->v[1]),
-			  (sp->v[2] - pi->v[2])};
+    const double dv[3] = {(pi->v[0] - sp->v[0]),
+			  (pi->v[1] - sp->v[1]),
+			  (pi->v[2] - sp->v[2])};
 
     /* Kernel function. Notice that it uses h = sp->r_cut. */
     const float ui = r / H_sink; /* The ratio of comoving removes the
