@@ -1037,7 +1037,7 @@ INLINE static double sink_compute_W_regulated_accretion(struct sink* restrict sp
     /* Kernel of the part i */
     double wi = 0.0;
     kernel_eval_double(ui, &wi);
-    wi *= pow_dimension_plus_one(H_sink) ;
+    wi *= pow_dimension_plus_one(1.0/H_sink) ;
 
     /* Compute the \mathcal{W} */
     W += pi->mass * wi / pi->rho;
@@ -1090,18 +1090,18 @@ INLINE static double sink_compute_radial_accretion_timescale(struct sink* restri
     /* Kernel of the part i */
     double wi = 0.0;
     kernel_eval_double(ui, &wi);
-    wi *= pow_dimension_plus_one(H_sink) ;
+    wi *= pow_dimension_plus_one(1.0/H_sink) ;
 
     /* Compute the numerator of t_rad : Sum_j m_j.*/
     t_rad_numerator += pi->mass ;
 
     /* Compute the numerator of t_rad : */
-    t_rad_denominator += r * (dx[0]*dv[0] + dx[1]*dv[1] + dx[2]*dv[2]) * pi->mass * wi ;
+    t_rad_denominator += r * fabs(dx[0]*dv[0] + dx[1]*dv[1] + dx[2]*dv[2]) * pi->mass * wi ;
   } /* End of neighbour loop */
 
   t_rad_numerator *= W ;
   t_rad_denominator *= 4.0 * M_PI;
-
+  
   /* Compute the timescale */
   t_radial = t_rad_numerator / (t_rad_denominator);
 
