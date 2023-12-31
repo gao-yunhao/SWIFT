@@ -511,6 +511,55 @@ __attribute__((always_inline)) INLINE static void chemistry_add_part_to_sink(
 }
 
 /**
+ * @brief Transfer chemistry data of a gas particle to a sink.
+ *
+ * In contrast to `chemistry_add_part_to_sink`, only a fraction of the
+ * masses stored in the gas particle are transferred here. Absolute masses
+ * of the gas particle are adjusted as well.
+ * Black holes don't store fractions so we need to add element masses.
+ *
+ * We expect the nibble_mass to be the gas particle mass multiplied by the
+ * nibble_fraction.
+ *
+ * @param bp_data The black hole data to add to.
+ * @param p_data The gas data to use.
+ * @param delta_mass The mass to be removed from the gas particle.
+ * @param accreted_fraction The fraction of the (original) mass of the gas
+ *        particle that is removed.
+ */
+__attribute__((always_inline)) INLINE static void
+chemistry_transfer_part_to_sink(struct sink* sp,
+				struct part* p,
+				const double delta_mass,
+				const double accreted_fraction) {
+
+
+  struct chemistry_sink_data* sp_data = &sp->chemistry_data ;
+  struct chemistry_part_data* p_data =  &p->chemistry_data ; 
+  
+  /* Original gas mass : m_orig = delta_mass / accreted_fraction
+   * Current mass : delta_mass / accreted_fraction - delta_mass */
+  /* gas mass */
+  /* const float gas_mass_old = delta_mass / accreted_fraction; */
+  const float gas_mass = delta_mass / accreted_fraction - delta_mass;
+  const float sink_mass_old = sp->mass - delta_mass ; 
+
+  for (int k = 0; k < GEAR_CHEMISTRY_ELEMENT_COUNT; k++) {
+    /* Add the fraction to the sink */
+    double mk_sink = sp_data->metal_mass_fraction[k] * sink_mass_old +
+                p_data->smoothed_metal_mass_fraction[k] * gas_mass;
+
+    sp_data->metal_mass_fraction[k] = mk_sink / sp->mass;
+
+    /* Not sure if it is correct for the gas */
+    /* Remove the fraction from the gas */
+    p_data->metal_mass[k] -= p_data->metal_mass[k]*accreted_fraction ;
+    p_data->smoothed_metal_mass_fraction[k] -= p_data->smoothed_metal_mass_fraction[k]*accreted_fraction;
+  } 
+  
+}
+
+/**
  * @brief Transfer chemistry data of a gas particle to a black hole.
  *
  * In contrast to `chemistry_add_part_to_bpart`, only a fraction of the

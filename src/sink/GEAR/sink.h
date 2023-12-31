@@ -1394,14 +1394,15 @@ __attribute__((always_inline)) INLINE static void sink_swallow_part_regulated_ac
   /* Notice that if a gas is entirely swallowed, we have delta_mass = gas_mass,
      since we have not set the gas_mass to 0. Also, sink_data.swallow_id is >= 0.
      However, if the gas is not entirely swallowed, delta_mass != gas_mass and
-     sink_data.swallow_id < 0. */
+     sink_data.swallow_id < 0. Also, in this case, the orginal mass of the gas is
+     gas_mass + delta_mass. */
 
   /* Get the current dynamical masses */
   const float gas_mass = hydro_get_mass(p);
-  const float sink_mass = sp->mass;
+  const float sink_mass = sp->mass; /* mass before update */
 
   /* store the mass of the sink part i */
-  /* const float sink_mass_old = sp->mass; */
+  const float sink_mass_old = sp->mass;
 
   /* Increase the dynamical mass of the sink. */
   sp->mass += delta_mass;
@@ -1437,15 +1438,21 @@ __attribute__((always_inline)) INLINE static void sink_swallow_part_regulated_ac
   sp->gpart->v_full[1] = sp->v[1];
   sp->gpart->v_full[2] = sp->v[2];
 
-  /* Update the sink metal masses fraction */
-  /* Look at the BH nibbling */
-  /* chemistry_add_part_to_sink(sp, p, sink_mass_old); */
-
   /* If the sink swallowed entirely a gas particle */
   if (gas_mass == delta_mass) {
     sp->number_of_gas_swallows++;
     sp->number_of_direct_gas_swallows++;
+    /* Update the sink metal masses fraction */
+    chemistry_add_part_to_sink(sp, p, sink_mass_old);
+  } else {
+    const float p_mass_orig = gas_mass + delta_mass ;
+    /* Update the sink and also gas metal masses */
+    chemistry_transfer_part_to_sink(sp, p, delta_mass, delta_mass / p_mass_orig);
   }
+
+  /* Shall I update the number of neighbours ? This will be updated in the next
+     build of the array... If i update it here, I should pay attention to the
+     for loops with sink->N_neighbour and the neighbour_array size. */
   
 #ifdef SWIFT_DEBUG_CHECKS
   const float dr = sqrt(dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2]);
