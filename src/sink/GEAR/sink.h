@@ -1147,11 +1147,11 @@ INLINE static double sink_compute_disk_accretion_timescale(struct sink* restrict
     /* Kernel of the part i */
     double wi = 0.0;
     kernel_eval_double(ui, &wi);
-    wi *= pow_dimension_plus_one(H_sink) ;
+    wi *= pow_dimension_plus_one(1.0/H_sink) ;
 
     /* Compute disk timescale */
     double sound_speed = hydro_get_comoving_soundspeed(pi);
-    t_disk = sqrt(r) * pi->mass * wi / (pi->rho * sound_speed*sound_speed);
+    t_disk += sqrt(r) * pi->mass * wi / (pi->rho * sound_speed*sound_speed);
   } /* End of neighbour loop */
 
   /* Multiply by the constant */
@@ -1159,5 +1159,5 @@ INLINE static double sink_compute_disk_accretion_timescale(struct sink* restrict
 
   return t_disk;
 }
-    
+
 #endif /* SWIFT_GEAR_SINK_H */
