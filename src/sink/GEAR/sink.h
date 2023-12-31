@@ -211,6 +211,7 @@ __attribute__((always_inline)) INLINE static void sink_first_init_sink(
   if (sink_props->do_regulated_accretion) {
     sp->N_neighbours = 0;
     sp->mass_interaction_init = 0.f;
+    sp->mass_interaction_current = 0.f;
     sp->neighbour_array = malloc(sizeof(sink_neighbour_array));
     message("Creating neighbour array after ICs...");
 
@@ -309,6 +310,9 @@ __attribute__((always_inline)) INLINE static void sink_init_sink(
   if (sink_construct_neighbour_array(sp->neighbour_array) == NULL) {
     error("Could not construct sink neighbour_neighnour array. Aborting.");
   }
+
+  sp->mass_interaction_current = 0.f;
+
 }
 
 /**
