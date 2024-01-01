@@ -26,6 +26,9 @@ struct sink_props {
 
   /*! Cut off radius */
   float cut_off_radius;
+
+  /* Enable or not the regulated accretion scheme. Default: 0 */
+  uint8_t do_regulated_accretion;
 };
 
 /**
@@ -44,8 +47,13 @@ INLINE static void sink_props_init(struct sink_props *sp,
                                    struct swift_params *params,
                                    const struct cosmology *cosmo) {
 
+  const uint8_t default_do_regulated_accretion = 0;
+
   sp->cut_off_radius =
       parser_get_param_float(params, "DefaultSink:cut_off_radius");
+
+  sp->do_regulated_accretion = parser_get_opt_param_int(params, "DefaultSink:do_regulated_accretion",
+							default_do_regulated_accretion);
 }
 
 /**
