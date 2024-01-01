@@ -1439,7 +1439,7 @@ __attribute__((always_inline)) INLINE static void sink_swallow_part_regulated_ac
   sp->gpart->v_full[2] = sp->v[2];
 
   /* If the sink swallowed entirely a gas particle */
-  if (gas_mass == delta_mass) {
+  if (p->sink_data.swallow_id >= 0) {
     sp->number_of_gas_swallows++;
     sp->number_of_direct_gas_swallows++;
     /* Update the sink metal masses fraction */
