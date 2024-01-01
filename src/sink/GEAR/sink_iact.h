@@ -503,14 +503,44 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
 	 afterwards. But it will allow the cell to update the ti_beg_max. */
       /* Pay attention to update the gpart accordingly ! */
 
-      /* Relock space, we are updating the part. */
+      /* Lock space again, we are updating the sink and the part. */
       lock_lock(&s->lock);
 
       sink_swallow_part_regulated_accretion(si, pj, NULL, cosmo, delta_m_j);
 
       /* Release the space as we are done updating the part. */
       if (lock_unlock(&s->lock) != 0)
-	error("Failed to unlock the space.");      
+	error("Failed to unlock the space.");
+
+      /* Remove the particle flagged for swallowing */
+      /* Get the ID of the sink that will swallow this part */
+      const long long swallow_id = sink_get_part_swallow_id(&pj->sink_data);
+
+      /* Has this particle been flagged for swallowing? */
+      if (swallow_id >= 0) {
+
+	/* If the gas particle is local, remove it */
+	if (c->nodeID == e->nodeID) {
+
+	  lock_lock(&e->s->lock);
+
+	  /* Re-check that the particle has not been removed
+	   * by another thread before we do the deed. */
+	  if (!part_is_inhibited(pj, e)) {
+
+	    /* Finally, remove the gas particle from the system
+	     * Recall that the gpart associated with it is also removed
+	     * at the same time. */
+	    cell_remove_part(e, c, pj, NULL); /* For now xpart = NULL */
+	  }
+
+	  if (lock_unlock(&e->s->lock) != 0)
+	    error("Failed to unlock the space!");
+	}
+
+	/* In any case, prevent the particle from being re-swallowed */
+	sink_mark_part_as_swallowed(&pj->sink_data);
+      } /* End of gas removal */
 
     }  /* End of neighbour loop */
 
