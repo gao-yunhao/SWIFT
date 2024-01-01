@@ -1388,7 +1388,7 @@ INLINE static double sink_compute_f_accretion_timescale(struct sink* restrict sp
  * @param delta_mass The mass removed from the #part during the regulated accretion.
  */
 __attribute__((always_inline)) INLINE static void sink_swallow_part_regulated_accretion(
-    struct sink* sp, const struct part* p, const struct xpart* xp,
+    struct sink* sp, struct part* p, struct xpart* xp,
     const struct cosmology* cosmo, const double delta_mass) {
 
   /* Notice that if a gas is entirely swallowed, we have delta_mass = gas_mass,
