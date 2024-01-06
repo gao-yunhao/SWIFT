@@ -322,9 +322,9 @@ runner_iact_nonsym_sinks_gas_swallow(const float r2, const float dx[3],
  * @param
  */
 INLINE static void
-runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space *s,
-						  struct cell* c) {
+runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e,  struct cell* c) {
 
+  struct space *s = e->s;
   const struct cosmology* cosmo = e->cosmology;
   const int with_cosmology = e->policy & engine_policy_cosmology;
   const struct phys_const* phys_const = e->physical_constants;
@@ -503,7 +503,7 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
 	 afterwards. But it will allow the cell to update the ti_beg_max. */
       /* Pay attention to update the gpart accordingly ! */
 
-      /* Lock space again, we are updating the sink and the part. */
+      /* Lock space again, we are updating the sink AND the part. */
       lock_lock(&s->lock);
 
       sink_swallow_part_regulated_accretion(si, pj, NULL, cosmo, delta_m_j);
@@ -522,7 +522,7 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
 	/* If the gas particle is local, remove it */
 	if (c->nodeID == e->nodeID) {
 
-	  lock_lock(&e->s->lock);
+	  lock_lock(&s->lock);
 
 	  /* Re-check that the particle has not been removed
 	   * by another thread before we do the deed. */
@@ -534,7 +534,7 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
 	    cell_remove_part(e, c, pj, NULL); /* For now xpart = NULL */
 	  }
 
-	  if (lock_unlock(&e->s->lock) != 0)
+	  if (lock_unlock(&s->lock) != 0)
 	    error("Failed to unlock the space!");
 	}
 
