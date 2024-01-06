@@ -1579,7 +1579,9 @@ INLINE static void sink_angular_momentum_feedback(struct engine* e, struct sink*
 				 delta_angular_momentum_norm_sink*L_sink_cross_dx[2]/delta_v_j_denominator};
 
 
-    /* Lock space here */
+    /* Lock space, we are updating the part */
+    lock_lock(&s->lock);
+
     /* Update the part and its gpart */
     pj->v[0] += delta_v_j[0];
     pj->v[1] += delta_v_j[1];
@@ -1587,6 +1589,9 @@ INLINE static void sink_angular_momentum_feedback(struct engine* e, struct sink*
     pj->gpart->v_full[0] += delta_v_j[0];
     pj->gpart->v_full[1] += delta_v_j[1];
     pj->gpart->v_full[2] += delta_v_j[2];
+
+    if (lock_unlock(&s->lock) != 0)
+      error("Failed to unlock the space!");
 
     /* Update the sink kick */
     delta_v_sink[0] -= pj->mass*delta_v_j[0];
