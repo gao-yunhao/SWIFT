@@ -337,7 +337,7 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e, struct space
   /* Loop over all sinks in the cell */
   for (size_t i = 0; i < nr_sink ; ++i) {
     /* Get a handle on the sink. */
-    struct sink *si = &sinks[i];
+    struct sink* restrict si = &sinks[i];
     sink_neighbour_array* neighbour_array = si->neighbour_array;
 
     /* Skip inactive particles */
