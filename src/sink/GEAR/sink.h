@@ -1471,6 +1471,9 @@ __attribute__((always_inline)) INLINE static void sink_swallow_part_regulated_ac
  *
  * This function is only used for the regulated accretion scheme.
  *
+ * TODO: check momentum and angular momentum conservation with the
+ *       feedback.
+ *
  * @param e The #engine.
  * @param si The #sink.
  * @param dt_sink Timestep of the sink si.
@@ -1619,9 +1622,6 @@ INLINE static void sink_angular_momentum_feedback(struct engine* e, struct sink*
   si->swallowed_angular_momentum[0] += delta_angular_momentum_sink[0];
   si->swallowed_angular_momentum[1] += delta_angular_momentum_sink[1];
   si->swallowed_angular_momentum[2] += delta_angular_momentum_sink[2];
-
-  /* TODO: check momentum and angular momentum conservation with the
-     feedback. */
 }
 
 #endif /* SWIFT_GEAR_SINK_H */
