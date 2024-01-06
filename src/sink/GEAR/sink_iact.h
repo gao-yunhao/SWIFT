@@ -492,25 +492,10 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e,  struct cell
       /* Release the space as we are done updating the part */
       if (lock_unlock(&s->lock) != 0) error("Failed to unlock the space.");
 
-      /* Update the sink properties */
-      /* If the particle has been entirely swallowed, its sink_data.swallow_id
-	 contains the id of sink that swallows it. In such case, here we do not
-	 update the sink nor remove it; both things are done properly in
-	 runner_do_sinks_gas_swallow(). */
-      /* Finally, I changed my mind. We'll change depending on Yves' or
-	 Matthieu's recommandation. I will update the sink here for all
-	 cases and remove the part here, by copying the code and adapting
-	 it. Then, to make sure the cell gets an updated value of
-	 ti_beg_max, I won't end the runner_do_sinks_gas_swallow() after
-	 the current fct. I will just mark the part as swalloed with
-	 the fct sink_mark_part_as_swallowed(&p->sink_data). When leaving this
-	 function, the part id will be -2, preventing it to be reswallowed
-	 afterwards. But it will allow the cell to update the ti_beg_max. */
-      /* Pay attention to update the gpart accordingly ! */
-
       /* Lock space again, we are updating the sink AND the part. */
       lock_lock(&s->lock);
 
+      /* Update the sink and part properties */
       sink_swallow_part_regulated_accretion(si, pj, NULL, cosmo, delta_m_j);
 
       /* Release the space as we are done updating the part. */
@@ -543,7 +528,9 @@ runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e,  struct cell
 	    error("Failed to unlock the space!");
 	}
 
-	/* In any case, prevent the particle from being re-swallowed */
+	/* In any case, prevent the particle from being re-swallowed. This
+	   allows to continue in runner_do_sinks_gas_swallow() and update the
+	   ti_beg_max accordingly. */
 	sink_mark_part_as_swallowed(&pj->sink_data);
       } /* End of gas removal */
 
