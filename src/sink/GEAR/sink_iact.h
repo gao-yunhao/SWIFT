@@ -317,9 +317,14 @@ runner_iact_nonsym_sinks_gas_swallow(const float r2, const float dx[3],
 }
 
 /**
- * @brief Swallow the gas
+ * @brief Process all sink particles in the cell and swallow their neighbouring
+ * gas particles starting from the closest particle using the regulated
+ * accretion scheme.
  *
- * @param
+ * This function is used for regulated accretion.
+ *
+ * @param e The #engine.
+ * @param c The #cell to updated
  */
 INLINE static void
 runner_iact_nonsym_sinks_do_gas_swallow_regulated(struct engine* e,  struct cell* c) {
