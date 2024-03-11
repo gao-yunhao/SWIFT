@@ -41,6 +41,8 @@
 #define gravity_props_default_rebuild_frequency 0.01f
 #define gravity_props_default_rebuild_active_fraction 1.01f  // > 1 means never
 #define gravity_props_default_distributed_mesh 0
+#define gravity_props_default_max_adaptive_softening FLT_MAX
+#define gravity_props_default_min_adaptive_softening 0.f
 
 void gravity_props_init(struct gravity_props *p, struct swift_params *params,
                         const struct phys_const *phys_const,
@@ -91,8 +93,8 @@ void gravity_props_init(struct gravity_props *p, struct swift_params *params,
 #if !defined(WITH_MPI) || !defined(HAVE_MPI_FFTW)
     if (p->distributed_mesh)
       error(
-          "Need to use MPI and FFTW MPI library to run with "
-          "distributed_mesh=1.");
+          "Need to use MPI and FFTW MPI library (i.e. compile with "
+          "--enable-mpi-mesh-gravity) to run with distributed mesh.");
 #endif
 
     if (2. * p->a_smooth * p->r_cut_max_ratio > p->mesh_size)
@@ -241,6 +243,18 @@ void gravity_props_init(struct gravity_props *p, struct swift_params *params,
     p->epsilon_DM_comoving = p->epsilon_DM_max_physical;
     p->epsilon_baryon_comoving = p->epsilon_baryon_max_physical;
   }
+
+  /* Adaptive softening properties */
+  p->max_adaptive_softening = parser_get_opt_param_float(
+      params, "Gravity:max_adaptive_softening",
+      gravity_props_default_max_adaptive_softening /
+          kernel_gravity_softening_plummer_equivalent);
+  p->min_adaptive_softening =
+      parser_get_opt_param_float(params, "Gravity:min_adaptive_softening",
+                                 gravity_props_default_min_adaptive_softening);
+
+  p->max_adaptive_softening *= kernel_gravity_softening_plummer_equivalent;
+  p->min_adaptive_softening *= kernel_gravity_softening_plummer_equivalent;
 
   /* Copy over the gravitational constant */
   p->G_Newton = phys_const->const_newton_G;

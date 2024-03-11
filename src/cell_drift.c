@@ -27,6 +27,7 @@
 
 /* Local headers. */
 #include "active.h"
+#include "adaptive_softening.h"
 #include "drift.h"
 #include "feedback.h"
 #include "gravity.h"
@@ -34,7 +35,6 @@
 #include "lightcone/lightcone_array.h"
 #include "multipole.h"
 #include "neutrino.h"
-#include "pressure_floor.h"
 #include "rt.h"
 #include "sink.h"
 #include "star_formation.h"
@@ -341,10 +341,10 @@ void cell_drift_part(struct cell *c, const struct engine *e, int force,
       /* Get ready for a density calculation */
       if (part_is_active(p, e)) {
         hydro_init_part(p, &e->s->hs);
+        adaptive_softening_init_part(p);
         mhd_init_part(p);
         black_holes_init_potential(&p->black_holes_data);
         chemistry_init_part(p, e->chemistry);
-        pressure_floor_init_part(p, xp);
         star_formation_init_part(p, e->star_formation);
         tracers_after_init(p, xp, e->internal_units, e->physical_constants,
                            with_cosmology, e->cosmology, e->hydro_properties,

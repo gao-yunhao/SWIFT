@@ -223,6 +223,8 @@ void reset_particles(struct cell *c, struct hydro_space *hs,
 #endif
 
     hydro_init_part(p, hs);
+    adaptive_softening_init_part(p);
+    mhd_init_part(p);
 
 #if defined(SHADOWFAX_SPH)
     float volume = p->conserved.mass / density;
@@ -615,6 +617,9 @@ int main(int argc, char *argv[]) {
   lightcone_array_properties.nr_lightcones = 0;
   engine.lightcone_array_properties = &lightcone_array_properties;
 
+  struct pressure_floor_props pressure_floor;
+  engine.pressure_floor_props = &pressure_floor;
+
   /* Construct some cells */
   struct cell *cells[125];
   struct cell *inner_cells[27];
@@ -663,8 +668,11 @@ int main(int argc, char *argv[]) {
 
     /* Reset particles. */
     for (int i = 0; i < 125; ++i) {
-      for (int pid = 0; pid < cells[i]->hydro.count; ++pid)
+      for (int pid = 0; pid < cells[i]->hydro.count; ++pid) {
         hydro_init_part(&cells[i]->hydro.parts[pid], &space.hs);
+        adaptive_softening_init_part(&cells[i]->hydro.parts[pid]);
+        mhd_init_part(&cells[i]->hydro.parts[pid]);
+      }
     }
 
     /* First, sort stuff */
@@ -813,8 +821,11 @@ int main(int argc, char *argv[]) {
     }
 
     for (int i = 0; i < 125; ++i) {
-      for (int pid = 0; pid < cells[i]->hydro.count; ++pid)
+      for (int pid = 0; pid < cells[i]->hydro.count; ++pid) {
         hydro_init_part(&cells[i]->hydro.parts[pid], &space.hs);
+        adaptive_softening_init_part(&cells[i]->hydro.parts[pid]);
+        mhd_init_part(&cells[i]->hydro.parts[pid]);
+      }
     }
   }
 

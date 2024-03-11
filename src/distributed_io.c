@@ -64,6 +64,9 @@
 /* Are we timing the i/o? */
 //#define IO_SPEED_MEASUREMENT
 
+/* Max number of entries that can be written for a given particle type */
+static const int io_max_size_output_list = 100;
+
 /**
  * @brief Writes a data array in given HDF5 group.
  *
@@ -169,7 +172,8 @@ void write_distributed_array(
     h_err = H5Pset_chunk(h_prop, rank, chunk_shape);
     if (h_err < 0)
       error("Error while setting chunk size (%llu, %llu) for field '%s'.",
-            chunk_shape[0], chunk_shape[1], props.name);
+            (unsigned long long)chunk_shape[0],
+            (unsigned long long)chunk_shape[1], props.name);
 
     /* Are we imposing some form of lossy compression filter? */
     if (lossy_compression != compression_write_lossless)
@@ -451,6 +455,7 @@ void write_array_virtual(struct engine* e, hid_t grp, const char* fileName_base,
  * @param numFields The number of fields to write for each particle type.
  * @param internal_units The #unit_system used internally.
  * @param snapshot_units The #unit_system used in the snapshots.
+ * @param fof Is this a snapshot related to a stand-alone FOF call?
  * @param subsample_any Are any fields being subsampled?
  * @param subsample_fraction The subsampling fraction of each particle type.
  */
@@ -462,7 +467,7 @@ void write_virtual_file(struct engine* e, const char* fileName_base,
                         const int numFields[swift_type_count],
                         char current_selection_name[FIELD_BUFFER_SIZE],
                         const struct unit_system* internal_units,
-                        const struct unit_system* snapshot_units,
+                        const struct unit_system* snapshot_units, const int fof,
                         const int subsample_any,
                         const float subsample_fraction[swift_type_count]) {
 
@@ -527,6 +532,7 @@ void write_virtual_file(struct engine* e, const char* fileName_base,
   io_write_attribute_s(h_grp, "Code", "SWIFT");
   io_write_attribute_s(h_grp, "RunName", e->run_name);
   io_write_attribute_s(h_grp, "System", hostname());
+  io_write_attribute(h_grp, "Shift", DOUBLE, e->s->initial_shift, 3);
 
   /* Write out the particle types */
   io_write_part_type_names(h_grp);
@@ -602,7 +608,7 @@ void write_virtual_file(struct engine* e, const char* fileName_base,
   ic_info_write_hdf5(e->ics_metadata, h_file);
 
   /* Write all the meta-data */
-  io_write_meta_data(h_file, e, internal_units, snapshot_units);
+  io_write_meta_data(h_file, e, internal_units, snapshot_units, fof);
 
   /* Loop over all particle types */
   for (int ptype = 0; ptype < swift_type_count; ptype++) {
@@ -639,8 +645,8 @@ void write_virtual_file(struct engine* e, const char* fileName_base,
     io_write_attribute_ll(h_grp, "TotalNumberOfParticles", N_total[ptype]);
 
     int num_fields = 0;
-    struct io_props list[100];
-    bzero(list, 100 * sizeof(struct io_props));
+    struct io_props list[io_max_size_output_list];
+    bzero(list, io_max_size_output_list * sizeof(struct io_props));
 
     /* Write particle fields from the particle structure */
     switch (ptype) {
@@ -679,6 +685,15 @@ void write_virtual_file(struct engine* e, const char* fileName_base,
 
       default:
         error("Particle Type %d not yet supported. Aborting", ptype);
+    }
+
+    /* Verify we are not going to crash when writing below */
+    if (num_fields >= io_max_size_output_list)
+      error("Too many fields to write for particle type %d", ptype);
+    for (int i = 0; i < num_fields; ++i) {
+      if (!list[i].is_used) error("List of field contains an empty entry!");
+      if (!list[i].dimension)
+        error("Dimension of field '%s' is <= 1!", list[i].name);
     }
 
     /* Did the user specify a non-standard default for the entire particle
@@ -736,6 +751,7 @@ void write_virtual_file(struct engine* e, const char* fileName_base,
  * @param e The engine containing all the system.
  * @param internal_units The #unit_system used internally
  * @param snapshot_units The #unit_system used in the snapshots
+ * @param fof Is this a snapshot related to a stand-alone FOF call?
  * @param mpi_rank The rank number of the calling MPI rank.
  * @param mpi_size the number of MPI ranks.
  * @param comm The communicator used by the MPI ranks.
@@ -749,8 +765,9 @@ void write_virtual_file(struct engine* e, const char* fileName_base,
 void write_output_distributed(struct engine* e,
                               const struct unit_system* internal_units,
                               const struct unit_system* snapshot_units,
-                              const int mpi_rank, const int mpi_size,
-                              MPI_Comm comm, MPI_Info info) {
+                              const int fof, const int mpi_rank,
+                              const int mpi_size, MPI_Comm comm,
+                              MPI_Info info) {
 
   hid_t h_file = 0, h_grp = 0;
   int numFiles = mpi_size;
@@ -963,9 +980,16 @@ void write_output_distributed(struct engine* e,
 
   /* Use a single Lustre stripe with a rank-based OST offset? */
   if (e->snapshot_lustre_OST_count != 0) {
+
+    /* Use a random offset to avoid placing things in the same OSTs. We do
+     * this to keep the use of OSTs balanced, much like using -1 for the
+     * stripe. */
+    int offset = rand() % e->snapshot_lustre_OST_count;
+    MPI_Bcast(&offset, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
     char string[1200];
     sprintf(string, "lfs setstripe -c 1 -i %d %s",
-            (e->nodeID % e->snapshot_lustre_OST_count), fileName);
+            ((e->nodeID + offset) % e->snapshot_lustre_OST_count), fileName);
     const int result = system(string);
     if (result != 0) {
       message("lfs setstripe command returned error code %d", result);
@@ -1007,6 +1031,7 @@ void write_output_distributed(struct engine* e,
   if (mpi_rank == 0) sprintf(systemname, "%s", hostname());
   MPI_Bcast(systemname, 256, MPI_CHAR, 0, comm);
   io_write_attribute_s(h_grp, "System", systemname);
+  io_write_attribute(h_grp, "Shift", DOUBLE, e->s->initial_shift, 3);
 
   /* Write out the particle types */
   io_write_part_type_names(h_grp);
@@ -1087,7 +1112,7 @@ void write_output_distributed(struct engine* e,
   ic_info_write_hdf5(e->ics_metadata, h_file);
 
   /* Write all the meta-data */
-  io_write_meta_data(h_file, e, internal_units, snapshot_units);
+  io_write_meta_data(h_file, e, internal_units, snapshot_units, fof);
 
   /* Now write the top-level cell structure
    * We use a global offset of 0 here. This means that the cells will write
@@ -1134,8 +1159,8 @@ void write_output_distributed(struct engine* e,
     io_write_attribute_ll(h_grp, "TotalNumberOfParticles", N_total[ptype]);
 
     int num_fields = 0;
-    struct io_props list[100];
-    bzero(list, 100 * sizeof(struct io_props));
+    struct io_props list[io_max_size_output_list];
+    bzero(list, io_max_size_output_list * sizeof(struct io_props));
     size_t Nparticles = 0;
 
     struct part* parts_written = NULL;
@@ -1403,6 +1428,15 @@ void write_output_distributed(struct engine* e,
         error("Particle Type %d not yet supported. Aborting", ptype);
     }
 
+    /* Verify we are not going to crash when writing below */
+    if (num_fields >= io_max_size_output_list)
+      error("Too many fields to write for particle type %d", ptype);
+    for (int i = 0; i < num_fields; ++i) {
+      if (!list[i].is_used) error("List of field contains an empty entry!");
+      if (!list[i].dimension)
+        error("Dimension of field '%s' is <= 1!", list[i].name);
+    }
+
     /* Did the user specify a non-standard default for the entire particle
      * type? */
     const enum lossy_compression_schemes compression_level_current_default =
@@ -1457,7 +1491,7 @@ void write_output_distributed(struct engine* e,
   if (mpi_rank == 0)
     write_virtual_file(e, fileName_base, xmfFileName, N_total, N_counts,
                        mpi_size, to_write, numFields, current_selection_name,
-                       internal_units, snapshot_units, subsample_any,
+                       internal_units, snapshot_units, fof, subsample_any,
                        subsample_fraction);
 
   /* Make sure nobody is allowed to progress until rank 0 is done. */

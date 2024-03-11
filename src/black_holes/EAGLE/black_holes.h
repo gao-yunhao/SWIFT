@@ -23,6 +23,7 @@
 #include "black_holes_properties.h"
 #include "black_holes_struct.h"
 #include "cooling.h"
+#include "cooling/PS2020/cooling_tables.h"
 #include "cosmology.h"
 #include "dimension.h"
 #include "exp10.h"
@@ -136,6 +137,7 @@ __attribute__((always_inline)) INLINE static void black_holes_first_init_bpart(
   bp->dt_heat = 0.f;
   bp->AGN_number_of_AGN_events = 0;
   bp->AGN_number_of_energy_injections = 0;
+  bp->AGN_cumulative_energy = 0.f;
 
   /* Set the initial targetted heating temperature, used for the
    * BH time step determination */
@@ -358,6 +360,27 @@ black_holes_get_accreted_mass(const struct bpart* bp) {
 __attribute__((always_inline)) INLINE static double
 black_holes_get_subgrid_mass(const struct bpart* bp) {
   return bp->subgrid_mass;
+}
+
+/**
+ * @brief Return the current bolometric luminosity of the BH.
+ *
+ * @param bp the #bpart.
+ */
+__attribute__((always_inline)) INLINE static double
+black_holes_get_bolometric_luminosity(const struct bpart* bp,
+                                      const struct phys_const* constants) {
+  return 0.;
+}
+
+/**
+ * @brief Return the current kinetic jet power of the BH.
+ *
+ * @param bp the #bpart.
+ */
+__attribute__((always_inline)) INLINE static double black_holes_get_jet_power(
+    const struct bpart* bp, const struct phys_const* constants) {
+  return 0.;
 }
 
 /**
