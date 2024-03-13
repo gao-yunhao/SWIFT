@@ -634,14 +634,14 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
         /* Set the correct drifting flags */
         if (t_type == task_type_pair && t_subtype == task_subtype_bh_density) {
           if (ci_nodeID == nodeID) cell_activate_drift_bpart(ci, s);
-          if (ci_nodeID == nodeID) cell_activate_drift_part(ci, s);
+          if (ci_nodeID == nodeID && cj_active_black_holes) cell_activate_drift_part(ci, s);
 
-          if (cj_nodeID == nodeID) cell_activate_drift_part(cj, s);
+          if (cj_nodeID == nodeID && ci_active_black_holes) cell_activate_drift_part(cj, s);
           if (cj_nodeID == nodeID) cell_activate_drift_bpart(cj, s);
 
-          if (ci_nodeID == nodeID && with_timestep_sync)
+          if (ci_nodeID == nodeID  && cj_active_black_holes && with_timestep_sync)
             cell_activate_sync_part(ci, s);
-          if (cj_nodeID == nodeID && with_timestep_sync)
+          if (cj_nodeID == nodeID && ci_active_black_holes && with_timestep_sync)
             cell_activate_sync_part(cj, s);
 
           /* Activate bh_in for each cell that is part of
