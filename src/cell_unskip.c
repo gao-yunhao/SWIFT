@@ -1092,8 +1092,7 @@ void cell_activate_subcell_black_holes_tasks(struct cell *ci, struct cell *cj,
     const int cj_active = cell_is_active_black_holes(cj, e);
 
     /* Should we even bother? */
-    if (!ci_active && !cj_active)
-      return;
+    if (!ci_active && !cj_active) return;
 
     /* Get the orientation of the pair. */
     double shift[3];
@@ -1116,16 +1115,19 @@ void cell_activate_subcell_black_holes_tasks(struct cell *ci, struct cell *cj,
     else if (ci_active || cj_active) {
 
       /* Note we need to drift *both* BH cells to deal with BH<->BH swallows
-       * But we only need to drift the gas cell if the *other* cell has an active BH */
+       * But we only need to drift the gas cell if the *other* cell has an
+       * active BH */
 
       /* Activate the drifts if the cells are local. */
       if (ci->nodeID == engine_rank) cell_activate_drift_bpart(ci, s);
-      if (cj->nodeID == engine_rank && ci_active) cell_activate_drift_part(cj, s);
+      if (cj->nodeID == engine_rank && ci_active)
+        cell_activate_drift_part(cj, s);
       if (cj->nodeID == engine_rank && ci_active && with_timestep_sync)
         cell_activate_sync_part(cj, s);
 
       /* Activate the drifts if the cells are local. */
-      if (ci->nodeID == engine_rank && cj_active) cell_activate_drift_part(ci, s);
+      if (ci->nodeID == engine_rank && cj_active)
+        cell_activate_drift_part(ci, s);
       if (cj->nodeID == engine_rank) cell_activate_drift_bpart(cj, s);
       if (ci->nodeID == engine_rank && cj_active && with_timestep_sync)
         cell_activate_sync_part(ci, s);
@@ -2604,8 +2606,9 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
       else if (t->type == task_type_pair) {
 
         /* Activate the drift & sync tasks.
-	 * Note we need to drift *both* BH cells to deal with BH<->BH swallows
-	 * But we only need to drift the gas cell if the *other* cell has an active BH */
+         * Note we need to drift *both* BH cells to deal with BH<->BH swallows
+         * But we only need to drift the gas cell if the *other* cell has an
+         * active BH */
         if (ci_nodeID == nodeID) cell_activate_drift_bpart(ci, s);
         if (ci_nodeID == nodeID && cj_active) cell_activate_drift_part(ci, s);
 
