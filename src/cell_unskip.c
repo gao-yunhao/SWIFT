@@ -1087,9 +1087,12 @@ void cell_activate_subcell_black_holes_tasks(struct cell *ci, struct cell *cj,
 
   /* Otherwise, pair interation */
   else {
+
+    const int ci_active = cell_is_active_black_holes(ci, e);
+    const int cj_active = cell_is_active_black_holes(cj, e);
+
     /* Should we even bother? */
-    if (!cell_is_active_black_holes(ci, e) &&
-        !cell_is_active_black_holes(cj, e))
+    if (!ci_active && !cj_active)
       return;
 
     /* Get the orientation of the pair. */
@@ -1110,8 +1113,7 @@ void cell_activate_subcell_black_holes_tasks(struct cell *ci, struct cell *cj,
     }
 
     /* Otherwise, activate the drifts. */
-    else if (cell_is_active_black_holes(ci, e) ||
-             cell_is_active_black_holes(cj, e)) {
+    else if (ci_active || cj_active) {
 
       /* Note we need to drift *both* BH cells to deal with BH<->BH swallows
        * But we only need to drift the gas cell if the *other* cell has an active BH */
