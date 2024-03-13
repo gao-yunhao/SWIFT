@@ -634,14 +634,18 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
         /* Set the correct drifting flags */
         if (t_type == task_type_pair && t_subtype == task_subtype_bh_density) {
           if (ci_nodeID == nodeID) cell_activate_drift_bpart(ci, s);
-          if (ci_nodeID == nodeID && cj_active_black_holes) cell_activate_drift_part(ci, s);
+          if (ci_nodeID == nodeID && cj_active_black_holes)
+            cell_activate_drift_part(ci, s);
 
-          if (cj_nodeID == nodeID && ci_active_black_holes) cell_activate_drift_part(cj, s);
+          if (cj_nodeID == nodeID && ci_active_black_holes)
+            cell_activate_drift_part(cj, s);
           if (cj_nodeID == nodeID) cell_activate_drift_bpart(cj, s);
 
-          if (ci_nodeID == nodeID  && cj_active_black_holes && with_timestep_sync)
+          if (ci_nodeID == nodeID && cj_active_black_holes &&
+              with_timestep_sync)
             cell_activate_sync_part(ci, s);
-          if (cj_nodeID == nodeID && ci_active_black_holes && with_timestep_sync)
+          if (cj_nodeID == nodeID && ci_active_black_holes &&
+              with_timestep_sync)
             cell_activate_sync_part(cj, s);
 
           /* Activate bh_in for each cell that is part of
@@ -882,6 +886,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
                                               with_timestep_limiter);
           }
         }
+#endif
       }
 
       /* Pair tasks between inactive local cells and active remote cells. */
@@ -890,6 +895,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
           (ci_nodeID == nodeID && cj_nodeID != nodeID && !ci_active_rt &&
            cj_active_rt)) {
 
+#if defined(WITH_MPI) && defined(MPI_SYMMETRIC_FORCE_INTERACTION)
         if (t_subtype == task_subtype_rt_transport) {
 
           scheduler_activate(s, t);
@@ -973,8 +979,8 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
                sent, i.e. drift the cell specified in the send task (l->t)
                itself. */
             cell_activate_drift_part(cj, s);
-	    if (with_timestep_limiter) cell_activate_limiter(cj, s);
-	    
+            if (with_timestep_limiter) cell_activate_limiter(cj, s);
+
             /* If the local cell is also active, more stuff will be needed. */
             if (cj_active_hydro) {
               scheduler_activate_send(s, cj->mpi.send, task_subtype_rho,
@@ -1074,8 +1080,8 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
                sent, i.e. drift the cell specified in the send task (l->t)
                itself. */
             cell_activate_drift_part(ci, s);
-	    if (with_timestep_limiter) cell_activate_limiter(ci, s);
-	    
+            if (with_timestep_limiter) cell_activate_limiter(ci, s);
+
             /* If the local cell is also active, more stuff will be needed. */
             if (ci_active_hydro) {
 
@@ -1303,6 +1309,8 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
                                   cj_nodeID);
           scheduler_activate_send(s, ci->mpi.send, task_subtype_bpart_feedback,
                                   cj_nodeID);
+          scheduler_activate_send(s, ci->mpi.send, task_subtype_bpart_merger,
+                                  cj_nodeID);
 
           /* Drift before you send */
           cell_activate_drift_bpart(ci, s);
@@ -1315,8 +1323,6 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
           /* Send the local part information */
           scheduler_activate_send(s, ci->mpi.send, task_subtype_rho, cj_nodeID);
           scheduler_activate_send(s, ci->mpi.send, task_subtype_part_swallow,
-                                  cj_nodeID);
-          scheduler_activate_send(s, ci->mpi.send, task_subtype_bpart_merger,
                                   cj_nodeID);
 
           /* Drift the cell which will be sent; note that not all sent
@@ -1368,8 +1374,9 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
           }
         }
 #endif
-      } /* Only interested in RT tasks as of here. */
+      }
 
+      /* Only interested in RT tasks as of here. */
       else if (t->subtype == task_subtype_rt_gradient) {
 
 #ifdef WITH_MPI
