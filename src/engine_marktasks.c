@@ -973,7 +973,8 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
                sent, i.e. drift the cell specified in the send task (l->t)
                itself. */
             cell_activate_drift_part(cj, s);
-
+	    if (with_timestep_limiter) cell_activate_limiter(cj, s);
+	    
             /* If the local cell is also active, more stuff will be needed. */
             if (cj_active_hydro) {
               scheduler_activate_send(s, cj->mpi.send, task_subtype_rho,
@@ -1073,7 +1074,8 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
                sent, i.e. drift the cell specified in the send task (l->t)
                itself. */
             cell_activate_drift_part(ci, s);
-
+	    if (with_timestep_limiter) cell_activate_limiter(ci, s);
+	    
             /* If the local cell is also active, more stuff will be needed. */
             if (ci_active_hydro) {
 
