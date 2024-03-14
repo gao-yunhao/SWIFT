@@ -2579,8 +2579,11 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
     struct task *t = l->t;
     struct cell *ci = t->ci;
     struct cell *cj = t->cj;
-    const int ci_active = cell_is_active_black_holes(ci, e);
-    const int cj_active = (cj != NULL) ? cell_is_active_black_holes(cj, e) : 0;
+    const int ci_active =
+        ci->black_holes.count > 0 && cell_is_active_black_holes(ci, e);
+    const int cj_active = (cj != NULL) ? (cj->black_holes.count > 0 &&
+                                          cell_is_active_black_holes(cj, e))
+                                       : 0;
 #ifdef WITH_MPI
     const int ci_nodeID = ci->nodeID;
     const int cj_nodeID = (cj != NULL) ? cj->nodeID : -1;

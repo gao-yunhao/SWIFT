@@ -633,6 +633,10 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
 
         /* Set the correct drifting flags */
         if (t_type == task_type_pair && t_subtype == task_subtype_bh_density) {
+
+          /* Note we need to drift *both* BH cells to deal with BH<->BH swallows
+           * But we only need to drift the gas cell if the *other* cell has an
+           * active BH */
           if (ci_nodeID == nodeID) cell_activate_drift_bpart(ci, s);
           if (ci_nodeID == nodeID && cj_active_black_holes)
             cell_activate_drift_part(ci, s);
@@ -647,6 +651,17 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
           if (cj_nodeID == nodeID && ci_active_black_holes &&
               with_timestep_sync)
             cell_activate_sync_part(cj, s);
+        }
+
+        /* Store current values of dx_max and h_max. */
+        else if (t_type == task_type_sub_pair &&
+                 t_subtype == task_subtype_bh_density) {
+          cell_activate_subcell_black_holes_tasks(ci, cj, s,
+                                                  with_timestep_sync);
+        }
+
+        if ((t_type == task_type_pair || t_type == task_type_sub_pair) &&
+            t_subtype == task_subtype_bh_density) {
 
           /* Activate bh_in for each cell that is part of
            * a pair task as to not miss any dependencies */
@@ -658,25 +673,13 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
 
         if ((t_type == task_type_pair || t_type == task_type_sub_pair) &&
             t_subtype == task_subtype_bh_feedback) {
+
           /* Add bh_out dependencies for each cell that is part of
            * a pair/sub_pair task as to not miss any dependencies */
           if (ci_nodeID == nodeID)
             scheduler_activate(s, ci->hydro.super->black_holes.black_holes_out);
           if (cj_nodeID == nodeID)
             scheduler_activate(s, cj->hydro.super->black_holes.black_holes_out);
-        }
-
-        /* Store current values of dx_max and h_max. */
-        else if (t_type == task_type_sub_pair &&
-                 t_subtype == task_subtype_bh_density) {
-          cell_activate_subcell_black_holes_tasks(ci, cj, s,
-                                                  with_timestep_sync);
-          /* Activate bh_in for each cell that is part of
-           * a sub_pair task as to not miss any dependencies */
-          if (ci_nodeID == nodeID)
-            scheduler_activate(s, ci->hydro.super->black_holes.black_holes_in);
-          if (cj_nodeID == nodeID)
-            scheduler_activate(s, cj->hydro.super->black_holes.black_holes_in);
         }
       }
 
