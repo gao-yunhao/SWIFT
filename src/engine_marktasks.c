@@ -1272,7 +1272,8 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
              * the swallowing */
             scheduler_activate_recv(s, ci->mpi.recv, task_subtype_rho);
             scheduler_activate_recv(s, ci->mpi.recv, task_subtype_part_swallow);
-            /* scheduler_activate_recv(s, ci->mpi.recv, task_subtype_bpart_merger); */
+            /* scheduler_activate_recv(s, ci->mpi.recv,
+             * task_subtype_bpart_merger); */
 
             /* Send the local BHs to tag the particles to swallow and to do
              * feedback */
@@ -1280,8 +1281,9 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
                                     ci_nodeID);
             scheduler_activate_send(s, cj->mpi.send,
                                     task_subtype_bpart_feedback, ci_nodeID);
-	    /* scheduler_activate_send(s, cj->mpi.send, task_subtype_bpart_merger, */
-	    /* 			    cj_nodeID); */
+            /* scheduler_activate_send(s, cj->mpi.send,
+             * task_subtype_bpart_merger, */
+            /* 			    cj_nodeID); */
 
             /* Drift before you send */
             cell_activate_drift_bpart(cj, s);
@@ -1301,14 +1303,16 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
             scheduler_activate_send(s, cj->mpi.send, task_subtype_part_swallow,
                                     ci_nodeID);
 
-	    /* if (cj->black_holes.count > 0)  */
-	    /* scheduler_activate_send(s, cj->mpi.send, task_subtype_bpart_merger, */
-	    /* 			    ci_nodeID); */
+            /* if (cj->black_holes.count > 0)  */
+            /* scheduler_activate_send(s, cj->mpi.send,
+             * task_subtype_bpart_merger, */
+            /* 			    ci_nodeID); */
 
             /* Drift the cell which will be sent; note that not all sent
                particles will be drifted, only those that are needed. */
             cell_activate_drift_part(cj, s);
-            /* if (cj->black_holes.count > 0) cell_activate_drift_bpart(cj, s); */
+            /* if (cj->black_holes.count > 0) cell_activate_drift_bpart(cj, s);
+             */
           }
 
         } else if (cj_nodeID != nodeID) {
@@ -1319,7 +1323,8 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
              * the swallowing */
             scheduler_activate_recv(s, cj->mpi.recv, task_subtype_rho);
             scheduler_activate_recv(s, cj->mpi.recv, task_subtype_part_swallow);
-            /* scheduler_activate_recv(s, cj->mpi.recv, task_subtype_bpart_merger); */
+            /* scheduler_activate_recv(s, cj->mpi.recv,
+             * task_subtype_bpart_merger); */
 
             /* Send the local BHs to tag the particles to swallow and to do
              * feedback */
@@ -1327,7 +1332,8 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
                                     cj_nodeID);
             scheduler_activate_send(s, ci->mpi.send,
                                     task_subtype_bpart_feedback, cj_nodeID);
-            /* scheduler_activate_send(s, ci->mpi.send, task_subtype_bpart_merger, */
+            /* scheduler_activate_send(s, ci->mpi.send,
+             * task_subtype_bpart_merger, */
             /*                         cj_nodeID); */
 
             /* Drift before you send */
@@ -1348,14 +1354,16 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
             scheduler_activate_send(s, ci->mpi.send, task_subtype_part_swallow,
                                     cj_nodeID);
 
-	    /* if (ci->black_holes.count > 0)  */
-	    /* scheduler_activate_send(s, ci->mpi.send, task_subtype_bpart_merger, */
-	    /* 			    ci_nodeID); */
+            /* if (ci->black_holes.count > 0)  */
+            /* scheduler_activate_send(s, ci->mpi.send,
+             * task_subtype_bpart_merger, */
+            /* 			    ci_nodeID); */
 
             /* Drift the cell which will be sent; note that not all sent
                particles will be drifted, only those that are needed. */
             cell_activate_drift_part(ci, s);
-            /* if (ci->black_holes.count > 0) cell_activate_drift_bpart(ci, s); */
+            /* if (ci->black_holes.count > 0) cell_activate_drift_bpart(ci, s);
+             */
           }
         }
 #endif
