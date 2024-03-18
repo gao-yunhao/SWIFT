@@ -2637,17 +2637,20 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
       else if (t->type == task_type_sub_pair) {
         cell_activate_subcell_black_holes_tasks(ci, cj, s, with_timestep_sync);
       }
+
+      if (t->type == task_type_pair || t->type == task_type_sub_pair) {
+	/* Activate bh_in for each cell that is part of
+	 * a pair task as to not miss any dependencies */
+	if (ci_nodeID == nodeID)
+	  scheduler_activate(s, ci->hydro.super->black_holes.black_holes_in);
+	if (cj_nodeID == nodeID)
+	  scheduler_activate(s, cj->hydro.super->black_holes.black_holes_in);
+      }
+
     }
 
     /* Only interested in pair interactions as of here. */
     if (t->type == task_type_pair || t->type == task_type_sub_pair) {
-
-      /* Activate bh_in for each cell that is part of
-       * a pair task as to not miss any dependencies */
-      if (ci_nodeID == nodeID)
-        scheduler_activate(s, ci->hydro.super->black_holes.black_holes_in);
-      if (cj_nodeID == nodeID)
-        scheduler_activate(s, cj->hydro.super->black_holes.black_holes_in);
 
       /* Check whether there was too much particle motion, i.e. the
          cell neighbour conditions were violated. */
@@ -2669,7 +2672,7 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
            * swallowing */
           scheduler_activate_recv(s, ci->mpi.recv, task_subtype_rho);
           scheduler_activate_recv(s, ci->mpi.recv, task_subtype_part_swallow);
-          scheduler_activate_recv(s, ci->mpi.recv, task_subtype_bpart_merger);
+          /* scheduler_activate_recv(s, ci->mpi.recv, task_subtype_bpart_merger); */
 
           /* Send the local BHs to tag the particles to swallow and to do
            * feedback */
@@ -2677,6 +2680,8 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
                                   ci_nodeID);
           scheduler_activate_send(s, cj->mpi.send, task_subtype_bpart_feedback,
                                   ci_nodeID);
+          /* scheduler_activate_send(s, cj->mpi.send, task_subtype_bpart_merger, */
+          /*                         cj_nodeID); */
 
           /* Drift before you send */
           cell_activate_drift_bpart(cj, s);
@@ -2695,13 +2700,13 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
                                   ci_nodeID);
 
 	  /* if (cj->black_holes.count > 0)  */
-	  /*   scheduler_activate_send(s, cj->mpi.send, task_subtype_bpart_merger, */
-	  /* 			    ci_nodeID); */
+	  /* scheduler_activate_send(s, cj->mpi.send, task_subtype_bpart_merger, */
+	  /* 			  ci_nodeID); */
 
           /* Drift the cell which will be sent; note that not all sent
              particles will be drifted, only those that are needed. */
           cell_activate_drift_part(cj, s);
-          if (cj->black_holes.count > 0) cell_activate_drift_bpart(cj, s);
+          /* if (cj->black_holes.count > 0) cell_activate_drift_bpart(cj, s); */
         }
 
       } else if (cj_nodeID != nodeID) {
@@ -2712,7 +2717,7 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
            * swallowing */
           scheduler_activate_recv(s, cj->mpi.recv, task_subtype_rho);
           scheduler_activate_recv(s, cj->mpi.recv, task_subtype_part_swallow);
-          scheduler_activate_recv(s, cj->mpi.recv, task_subtype_bpart_merger);
+          /* scheduler_activate_recv(s, cj->mpi.recv, task_subtype_bpart_merger); */
 
           /* Send the local BHs to tag the particles to swallow and to do
            * feedback */
@@ -2720,8 +2725,8 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
                                   cj_nodeID);
           scheduler_activate_send(s, ci->mpi.send, task_subtype_bpart_feedback,
                                   cj_nodeID);
-          scheduler_activate_send(s, ci->mpi.send, task_subtype_bpart_merger,
-                                  cj_nodeID);
+          /* scheduler_activate_send(s, ci->mpi.send, task_subtype_bpart_merger, */
+          /*                         cj_nodeID); */
 
           /* Drift before you send */
           cell_activate_drift_bpart(ci, s);
@@ -2740,13 +2745,13 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
                                   cj_nodeID);
 
 	  /* if (ci->black_holes.count > 0)  */
-	  /*   scheduler_activate_send(s, ci->mpi.send, task_subtype_bpart_merger, */
-	  /* 			    ci_nodeID); */
+	  /* scheduler_activate_send(s, ci->mpi.send, task_subtype_bpart_merger, */
+	  /* 			  ci_nodeID); */
 
           /* Drift the cell which will be sent; note that not all sent
              particles will be drifted, only those that are needed. */
           cell_activate_drift_part(ci, s);
-          if (ci->black_holes.count > 0) cell_activate_drift_bpart(ci, s);
+          /* if (ci->black_holes.count > 0) cell_activate_drift_bpart(ci, s); */
         }
       }
 #endif
@@ -2867,10 +2872,10 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
       scheduler_activate(s, c->black_holes.swallow_ghost_2);
     if (c->black_holes.swallow_ghost_3 != NULL)
       scheduler_activate(s, c->black_holes.swallow_ghost_3);
-    if (c->black_holes.black_holes_in != NULL)
-      scheduler_activate(s, c->black_holes.black_holes_in);
-    if (c->black_holes.black_holes_out != NULL)
-      scheduler_activate(s, c->black_holes.black_holes_out);
+    //if (c->black_holes.black_holes_in != NULL)
+    //  scheduler_activate(s, c->black_holes.black_holes_in);
+    /* if (c->black_holes.black_holes_out != NULL) */
+    /*   scheduler_activate(s, c->black_holes.black_holes_out); */
     if (c->kick1 != NULL) scheduler_activate(s, c->kick1);
     if (c->kick2 != NULL) scheduler_activate(s, c->kick2);
     if (c->timestep != NULL) scheduler_activate(s, c->timestep);
