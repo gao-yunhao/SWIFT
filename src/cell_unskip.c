@@ -2662,6 +2662,13 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
       /* Activate the send/recv tasks. */
       if (ci_nodeID != nodeID) {
 
+        if (ci_active || cj_active) {
+          /* We must exchange the foreign BHs no matter the activity status */
+          scheduler_activate_recv(s, ci->mpi.recv, task_subtype_bpart_rho);
+          scheduler_activate_send(s, cj->mpi.send, task_subtype_bpart_rho,
+                                  ci_nodeID);
+        }
+
         if (cj_active) {
 
           /* Receive the foreign parts to compute BH accretion rates and do the
@@ -2709,6 +2716,13 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
         }
 
       } else if (cj_nodeID != nodeID) {
+
+        if (ci_active || cj_active) {
+          /* We must exchange the foreign BHs no matter the activity status */
+          scheduler_activate_recv(s, cj->mpi.recv, task_subtype_bpart_rho);
+          scheduler_activate_send(s, ci->mpi.send, task_subtype_bpart_rho,
+                                  cj_nodeID);
+        }
 
         if (ci_active) {
 
