@@ -1281,10 +1281,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
             scheduler_activate_recv(s, ci->mpi.recv, task_subtype_part_swallow);
             scheduler_activate_recv(s, ci->mpi.recv, task_subtype_bpart_merger);
 
-            /* Send the local BHs to tag the particles to swallow and to do
-             * feedback */
-            scheduler_activate_send(s, cj->mpi.send, task_subtype_bpart_rho,
-                                    ci_nodeID);
+            /* Send the local BHs to tag the particles to do feedback */
             scheduler_activate_send(s, cj->mpi.send,
                                     task_subtype_bpart_feedback, ci_nodeID);
 
@@ -1294,9 +1291,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
 
           if (ci_active_black_holes) {
 
-            /* Receive the foreign BHs to tag particles to swallow and for
-             * feedback */
-            scheduler_activate_recv(s, ci->mpi.recv, task_subtype_bpart_rho);
+            /* Receive the foreign BHs for feedback */
             scheduler_activate_recv(s, ci->mpi.recv,
                                     task_subtype_bpart_feedback);
 
@@ -1330,10 +1325,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
             scheduler_activate_recv(s, cj->mpi.recv, task_subtype_part_swallow);
             scheduler_activate_recv(s, cj->mpi.recv, task_subtype_bpart_merger);
 
-            /* Send the local BHs to tag the particles to swallow and to do
-             * feedback */
-            scheduler_activate_send(s, ci->mpi.send, task_subtype_bpart_rho,
-                                    cj_nodeID);
+            /* Send the local BHs to do feedback */
             scheduler_activate_send(s, ci->mpi.send,
                                     task_subtype_bpart_feedback, cj_nodeID);
 
@@ -1343,9 +1335,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
 
           if (cj_active_black_holes) {
 
-            /* Receive the foreign BHs to tag particles to swallow and for
-             * feedback */
-            scheduler_activate_recv(s, cj->mpi.recv, task_subtype_bpart_rho);
+            /* Receive the foreign BHs for feedback */
             scheduler_activate_recv(s, cj->mpi.recv,
                                     task_subtype_bpart_feedback);
 
