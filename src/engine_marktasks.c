@@ -1350,8 +1350,6 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
             /* Drift the cell which will be sent; note that not all sent
                particles will be drifted, only those that are needed. */
             cell_activate_drift_part(ci, s);
-            /* if (ci->black_holes.count > 0) cell_activate_drift_bpart(ci, s);
-             */
           }
         }
 #endif
