@@ -1271,6 +1271,9 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
             scheduler_activate_recv(s, ci->mpi.recv, task_subtype_bpart_rho);
             scheduler_activate_send(s, cj->mpi.send, task_subtype_bpart_rho,
                                     ci_nodeID);
+
+            /* Drift before you send */
+            cell_activate_drift_bpart(cj, s);
           }
 
           if (cj_active_black_holes) {
@@ -1315,6 +1318,9 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
             scheduler_activate_recv(s, cj->mpi.recv, task_subtype_bpart_rho);
             scheduler_activate_send(s, ci->mpi.send, task_subtype_bpart_rho,
                                     cj_nodeID);
+
+            /* Drift before you send */
+            cell_activate_drift_bpart(ci, s);
           }
 
           if (ci_active_black_holes) {
