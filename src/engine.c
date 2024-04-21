@@ -955,6 +955,29 @@ void engine_do_tasks_count_mapper(void *map_data, int num_elements,
   }
 }
 
+void engine_do_tasks_skip_count_mapper(void *map_data, int num_elements,
+                                  void *extra_data) {
+
+  const struct task *tasks = (struct task *)map_data;
+  int *const global_counts = (int *)extra_data;
+
+  /* Local accumulator copy */
+  int local_counts[task_type_count + 1];
+  for (int k = 0; k <= task_type_count; k++) local_counts[k] = 0;
+
+  /* Add task counts locally */
+  for (int k = 0; k < num_elements; k++) {
+    if (tasks[k].skip)
+      local_counts[(int)tasks[k].type] += 1;
+  }
+
+  /* Update the global counts */
+  for (int k = 0; k <= task_type_count; k++) {
+    if (local_counts[k]) atomic_add(global_counts + k, local_counts[k]);
+  }
+}
+
+
 /**
  * @brief Prints the number of tasks in the engine
  *
@@ -1019,6 +1042,23 @@ void engine_print_task_counts(const struct engine *e) {
   message("nr_sink = %zu.", e->s->nr_sinks);
   message("nr_sparts = %zu.", e->s->nr_sparts);
   message("nr_bparts = %zu.", e->s->nr_bparts);
+
+  for (int k = 0; k <= task_type_count; k++) counts[k] = 0;
+  threadpool_map((struct threadpool *)&e->threadpool,
+                 engine_do_tasks_skip_count_mapper, (void *)tasks, nr_tasks,
+                 sizeof(struct task), threadpool_auto_chunk_size, counts);
+
+#ifdef WITH_MPI
+  printf("[%04i] %s engine_print_task_counts: skip task counts are [ %s=%i",
+         e->nodeID, clocks_get_timesincestart(), taskID_names[0], counts[0]);
+#else
+  printf("%s engine_print_task_counts: skip task counts are [ %s=%i",
+         clocks_get_timesincestart(), taskID_names[0], counts[0]);
+#endif
+  for (int k = 1; k < task_type_count; k++)
+    printf(" %s=%i", taskID_names[k], counts[k]);
+  fflush(stdout);
+
 
   if (e->verbose)
     message("took %.3f %s.", clocks_from_ticks(getticks() - tic),
@@ -1379,6 +1419,8 @@ void engine_rebuild(struct engine *e, const int repartitioned,
   /* Reset all the tasks */
   for (int i = 0; i < e->sched.nr_tasks; ++i) {
     e->sched.tasks[i].skip = 1;
+    if (e->sched.tasks[i].type == task_type_drift_bpart) e->sched.tasks[i].flags = 0;
+    if (e->sched.tasks[i].type == task_type_bh_swallow_ghost1) e->sched.tasks[i].flags = 0;
   }
   for (int i = 0; i < e->sched.active_count; ++i) {
     e->sched.tid_active[i] = -1;
@@ -1396,12 +1438,52 @@ void engine_rebuild(struct engine *e, const int repartitioned,
   for (int i = 0; i < e->sched.nr_tasks; ++i) {
     struct task *t = &e->sched.tasks[i];
 
-    if (t->activated_by_unskip && !t->activated_by_marktask)
+    if (t->activated_by_unskip && !t->activated_by_marktask) {
+
+
+      if (t->type == task_type_bh_swallow_ghost1) {
+	message("nodeID = %d, count=%d active=%d flags=%lld",
+		t->ci->nodeID, t->ci->black_holes.count, cell_is_active_black_holes(t->ci, e), t->flags);
+	message("Task %s/%s activated by unskip and not by marktask!",
+	      taskID_names[t->type], subtaskID_names[t->subtype]);
+	continue;
+      }
+
+      if (t->type == task_type_drift_bpart) {
+	error("Task %s/%s activated by unskip and not by marktask! nodeID = %d, count=%d active=%d flag=%lld",
+	      taskID_names[t->type], subtaskID_names[t->subtype] ,
+	      t->ci->nodeID, t->ci->black_holes.count, cell_is_active_black_holes(t->ci, e), t->flags);
+      }
+
+
+
       error("Task %s/%s activated by unskip and not by marktask!",
-            taskID_names[t->type], subtaskID_names[t->subtype]);
-    if (!t->activated_by_unskip && t->activated_by_marktask)
+            taskID_names[t->type], subtaskID_names[t->subtype]);      
+    }
+
+
+    if (!t->activated_by_unskip && t->activated_by_marktask) {
+
+      if (t->type == task_type_bh_swallow_ghost1) {
+	message("nodeID = %d, count=%d active=%d flag=%lld",
+		t->ci->nodeID, t->ci->black_holes.count, cell_is_active_black_holes(t->ci, e), t->flags);
+	message("Task %s/%s activated by marktask and not by unskip!",
+	      taskID_names[t->type], subtaskID_names[t->subtype]);
+	continue;
+      }
+
+      if (t->type == task_type_drift_bpart) {
+	error("Task %s/%s activated by marktask and not by unskip! nodeID = %d, count=%d active=%d flag=%lld",
+	      taskID_names[t->type], subtaskID_names[t->subtype] ,
+	      t->ci->nodeID, t->ci->black_holes.count, cell_is_active_black_holes(t->ci, e), t->flags);
+      }
+
       error("Task %s/%s activated by marktask and not by unskip!",
             taskID_names[t->type], subtaskID_names[t->subtype]);
+
+    }
+
+
 
     t->activated_by_marktask = 0;
     t->activated_by_unskip = 0;

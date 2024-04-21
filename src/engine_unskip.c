@@ -161,10 +161,10 @@ static void engine_do_unskip_black_holes(struct cell *c, struct engine *e) {
   if (!cell_get_flag(c, cell_flag_has_tasks)) return;
 
   /* Ignore empty cells. */
-  if (c->black_holes.count == 0) return;
+  //if (c->black_holes.count == 0) return;
 
   /* Skip inactive cells. */
-  if (!cell_is_active_black_holes(c, e)) return;
+  //if (!cell_is_active_black_holes(c, e)) return;
 
   /* Recurse */
   if (c->split) {

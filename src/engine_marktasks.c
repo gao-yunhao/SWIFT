@@ -267,7 +267,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
         if (ci_active_black_holes) {
           scheduler_activate(s, t);
           cell_activate_drift_part(ci, s);
-          cell_activate_drift_bpart(ci, s);
+          cell_activate_drift_bpart(ci, s, 1);
           if (with_timestep_sync) cell_activate_sync_part(ci, s);
         }
       }
@@ -637,13 +637,13 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
           /* Note we need to drift *both* BH cells to deal with BH<->BH swallows
            * But we only need to drift the gas cell if the *other* cell has an
            * active BH */
-          if (ci_nodeID == nodeID) cell_activate_drift_bpart(ci, s);
+          if (ci_nodeID == nodeID) cell_activate_drift_bpart(ci, s, 2);
           if (ci_nodeID == nodeID && cj_active_black_holes)
             cell_activate_drift_part(ci, s);
 
           if (cj_nodeID == nodeID && ci_active_black_holes)
             cell_activate_drift_part(cj, s);
-          if (cj_nodeID == nodeID) cell_activate_drift_bpart(cj, s);
+          if (cj_nodeID == nodeID) cell_activate_drift_bpart(cj, s, 4);
 
           if (ci_nodeID == nodeID && cj_active_black_holes &&
               with_timestep_sync)
@@ -1257,10 +1257,14 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
         if (cell_need_rebuild_for_black_holes_pair(ci, cj)) *rebuild_space = 1;
         if (cell_need_rebuild_for_black_holes_pair(cj, ci)) *rebuild_space = 1;
 
-        if (ci->hydro.super->black_holes.count > 0 && ci_active_black_holes)
+        if (ci->hydro.super->black_holes.count > 0 && ci_active_black_holes) {
           scheduler_activate(s, ci->hydro.super->black_holes.swallow_ghost_1);
-        if (cj->hydro.super->black_holes.count > 0 && cj_active_black_holes)
+	  ci->hydro.super->black_holes.swallow_ghost_1->flags |= 1;
+	}
+        if (cj->hydro.super->black_holes.count > 0 && cj_active_black_holes) {
           scheduler_activate(s, cj->hydro.super->black_holes.swallow_ghost_1);
+	  cj->hydro.super->black_holes.swallow_ghost_1->flags |= 2;
+	}
 
 #ifdef WITH_MPI
         /* Activate the send/recv tasks. */
@@ -1273,7 +1277,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
                                     ci_nodeID);
 
             /* Drift before you send */
-            cell_activate_drift_bpart(cj, s);
+            if (cj->black_holes.count > 0) cell_activate_drift_bpart(cj, s, 8);
           }
 
           if (cj_active_black_holes) {
@@ -1289,7 +1293,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
                                     task_subtype_bpart_feedback, ci_nodeID);
 
             /* Drift before you send */
-            cell_activate_drift_bpart(cj, s);
+            cell_activate_drift_bpart(cj, s, 16);
           }
 
           if (ci_active_black_holes) {
@@ -1308,7 +1312,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
 
             /* Drift the cell which will be sent; note that not all sent
                particles will be drifted, only those that are needed. */
-            cell_activate_drift_part(cj, s);
+            if (cj->hydro.count > 0) cell_activate_drift_part(cj, s);
           }
 
         } else if (cj_nodeID != nodeID) {
@@ -1320,7 +1324,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
                                     cj_nodeID);
 
             /* Drift before you send */
-            cell_activate_drift_bpart(ci, s);
+            if (ci->black_holes.count > 0) cell_activate_drift_bpart(ci, s, 32);
           }
 
           if (ci_active_black_holes) {
@@ -1336,7 +1340,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
                                     task_subtype_bpart_feedback, cj_nodeID);
 
             /* Drift before you send */
-            cell_activate_drift_bpart(ci, s);
+            cell_activate_drift_bpart(ci, s, 64);
           }
 
           if (cj_active_black_holes) {
@@ -1355,7 +1359,7 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
 
             /* Drift the cell which will be sent; note that not all sent
                particles will be drifted, only those that are needed. */
-            cell_activate_drift_part(ci, s);
+            if (ci->hydro.count > 0) cell_activate_drift_part(ci, s);
           }
         }
 #endif
@@ -1616,12 +1620,18 @@ void engine_marktasks_mapper(void *map_data, int num_elements,
              t_type == task_type_bh_swallow_ghost1 ||
              t_type == task_type_bh_swallow_ghost2 ||
              t_type == task_type_bh_swallow_ghost3) {
-      if (cell_is_active_black_holes(t->ci, e)) scheduler_activate(s, t);
+      if (cell_is_active_black_holes(t->ci, e)) {
+
+	scheduler_activate(s, t);
+	if(t_type == task_type_bh_swallow_ghost1) t->flags |= 4;
+      }
     }
 
     /* Black holes implicit tasks? */
     else if (t_type == task_type_bh_in || t_type == task_type_bh_out) {
-      if (cell_is_active_black_holes(t->ci, e)) scheduler_activate(s, t);
+      if (cell_is_active_black_holes(t->ci, e))  {
+	scheduler_activate(s, t);
+      }
     }
 
     /* Time-step collection? */

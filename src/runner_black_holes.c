@@ -351,7 +351,9 @@ void runner_do_bh_swallow(struct runner *r, struct cell *c, int timer) {
 
 #ifdef SWIFT_DEBUG_CHECKS
         if (cell_bp->ti_drift != e->ti_current)
-          error("Trying to swallow an un-drifted particle.");
+          error("Trying to swallow an un-drifted particle. node=%d count=%d active=%d ti_current=%lld cell_ti_drif=%lld ti_drift=%lld", 
+		c->nodeID, c->black_holes.count, cell_is_active_black_holes(c, e),
+		e->ti_current, c->black_holes.ti_old_part, cell_bp->ti_drift);
 #endif
 
         /* ID of the BH swallowing this particle */

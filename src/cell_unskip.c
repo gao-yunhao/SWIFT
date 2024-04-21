@@ -469,13 +469,15 @@ void cell_activate_drift_spart(struct cell *c, struct scheduler *s) {
 /**
  * @brief Activate the #bpart drifts on the given cell.
  */
-void cell_activate_drift_bpart(struct cell *c, struct scheduler *s) {
+void cell_activate_drift_bpart(struct cell *c, struct scheduler *s, long long flag) {
 
   /* If this cell is already marked for drift, quit early. */
   if (cell_get_flag(c, cell_flag_do_bh_drift)) return;
 
   /* Mark this cell for drifting. */
   cell_set_flag(c, cell_flag_do_bh_drift);
+
+  if ( flag == 0) error("aa");
 
   /* Set the do_black_holes_sub_drifts all the way up and activate the super
      drift if this has not yet been done. */
@@ -485,6 +487,8 @@ void cell_activate_drift_bpart(struct cell *c, struct scheduler *s) {
       error("Trying to activate un-existing c->black_holes.drift");
 #endif
     scheduler_activate(s, c->black_holes.drift);
+
+    c->black_holes.drift->flags |= flag;
   } else {
     for (struct cell *parent = c->parent;
          parent != NULL && !cell_get_flag(parent, cell_flag_do_bh_sub_drift);
@@ -498,6 +502,7 @@ void cell_activate_drift_bpart(struct cell *c, struct scheduler *s) {
           error("Trying to activate un-existing parent->black_holes.drift");
 #endif
         scheduler_activate(s, parent->black_holes.drift);
+	parent->black_holes.drift->flags |= flag;
         break;
       }
     }
@@ -1079,7 +1084,7 @@ void cell_activate_subcell_black_holes_tasks(struct cell *ci, struct cell *cj,
       }
     } else {
       /* We have reached the bottom of the tree: activate drift */
-      cell_activate_drift_bpart(ci, s);
+      cell_activate_drift_bpart(ci, s, 128);
       cell_activate_drift_part(ci, s);
       if (with_timestep_sync) cell_activate_sync_part(ci, s);
     }
@@ -1119,7 +1124,7 @@ void cell_activate_subcell_black_holes_tasks(struct cell *ci, struct cell *cj,
        * active BH */
 
       /* Activate the drifts if the cells are local. */
-      if (ci->nodeID == engine_rank) cell_activate_drift_bpart(ci, s);
+      if (ci->nodeID == engine_rank) cell_activate_drift_bpart(ci, s, 256);
       if (cj->nodeID == engine_rank && ci_active)
         cell_activate_drift_part(cj, s);
       if (cj->nodeID == engine_rank && ci_active && with_timestep_sync)
@@ -1128,7 +1133,7 @@ void cell_activate_subcell_black_holes_tasks(struct cell *ci, struct cell *cj,
       /* Activate the drifts if the cells are local. */
       if (ci->nodeID == engine_rank && cj_active)
         cell_activate_drift_part(ci, s);
-      if (cj->nodeID == engine_rank) cell_activate_drift_bpart(cj, s);
+      if (cj->nodeID == engine_rank) cell_activate_drift_bpart(cj, s, 512);
       if (ci->nodeID == engine_rank && cj_active && with_timestep_sync)
         cell_activate_sync_part(ci, s);
     }
@@ -2570,8 +2575,8 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
   const int nodeID = e->nodeID;
   int rebuild = 0;
 
-  if (c->black_holes.drift != NULL && cell_is_active_black_holes(c, e)) {
-    cell_activate_drift_bpart(c, s);
+  if (c->black_holes.drift != NULL && c->black_holes.count > 0 && cell_is_active_black_holes(c, e)) {
+    cell_activate_drift_bpart(c, s, 1024);
   }
 
   /* Un-skip the density tasks involved with this cell. */
@@ -2601,7 +2606,7 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
       /* Activate the drifts & sync */
       if (t->type == task_type_self) {
         cell_activate_drift_part(ci, s);
-        cell_activate_drift_bpart(ci, s);
+        cell_activate_drift_bpart(ci, s, 2048);
         if (with_timestep_sync) cell_activate_sync_part(ci, s);
       }
 
@@ -2612,11 +2617,11 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
          * Note we need to drift *both* BH cells to deal with BH<->BH swallows
          * But we only need to drift the gas cell if the *other* cell has an
          * active BH */
-        if (ci_nodeID == nodeID) cell_activate_drift_bpart(ci, s);
+        if (ci_nodeID == nodeID) cell_activate_drift_bpart(ci, s, 4096);
         if (ci_nodeID == nodeID && cj_active) cell_activate_drift_part(ci, s);
 
         if (cj_nodeID == nodeID && ci_active) cell_activate_drift_part(cj, s);
-        if (cj_nodeID == nodeID) cell_activate_drift_bpart(cj, s);
+        if (cj_nodeID == nodeID) cell_activate_drift_bpart(cj, s, 8192);
 
         if (ci_nodeID == nodeID && cj_active && with_timestep_sync)
           cell_activate_sync_part(ci, s);
@@ -2653,10 +2658,14 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
       if (cell_need_rebuild_for_black_holes_pair(ci, cj)) rebuild = 1;
       if (cell_need_rebuild_for_black_holes_pair(cj, ci)) rebuild = 1;
 
-      if (ci->hydro.super->black_holes.count > 0 && ci_active)
+      if (ci->hydro.super->black_holes.count > 0 && ci_active) {
         scheduler_activate(s, ci->hydro.super->black_holes.swallow_ghost_1);
-      if (cj->hydro.super->black_holes.count > 0 && cj_active)
+	ci->hydro.super->black_holes.swallow_ghost_1->flags |= 8;
+      }
+      if (cj->hydro.super->black_holes.count > 0 && cj_active) {
         scheduler_activate(s, cj->hydro.super->black_holes.swallow_ghost_1);
+	cj->hydro.super->black_holes.swallow_ghost_1->flags |= 16;
+      }
 
 #ifdef WITH_MPI
       /* Activate the send/recv tasks. */
@@ -2669,7 +2678,7 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
                                   ci_nodeID);
 
           /* Drift before you send */
-          cell_activate_drift_bpart(cj, s);
+          if (cj->black_holes.count > 0) cell_activate_drift_bpart(cj, s, 16384);
         }
 
         if (cj_active) {
@@ -2685,7 +2694,7 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
                                   ci_nodeID);
 
           /* Drift before you send */
-          cell_activate_drift_bpart(cj, s);
+          cell_activate_drift_bpart(cj, s, 32768);
         }
 
         if (ci_active) {
@@ -2702,7 +2711,7 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
 
           /* Drift the cell which will be sent; note that not all sent
              particles will be drifted, only those that are needed. */
-          cell_activate_drift_part(cj, s);
+          if (cj->hydro.count > 0) cell_activate_drift_part(cj, s);
         }
 
       } else if (cj_nodeID != nodeID) {
@@ -2714,7 +2723,7 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
                                   cj_nodeID);
 
           /* Drift before you send */
-          cell_activate_drift_bpart(ci, s);
+          if (ci->black_holes.count > 0) cell_activate_drift_bpart(ci, s, 65536);
         }
 
         if (ci_active) {
@@ -2730,7 +2739,7 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
                                   cj_nodeID);
 
           /* Drift before you send */
-          cell_activate_drift_bpart(ci, s);
+          cell_activate_drift_bpart(ci, s, 131072);
         }
 
         if (cj_active) {
@@ -2747,7 +2756,7 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
 
           /* Drift the cell which will be sent; note that not all sent
              particles will be drifted, only those that are needed. */
-          cell_activate_drift_part(ci, s);
+          if (ci->hydro.count > 0) cell_activate_drift_part(ci, s);
         }
       }
 #endif
@@ -2855,23 +2864,32 @@ int cell_unskip_black_holes_tasks(struct cell *c, struct scheduler *s) {
     }
   }
 
-  /* Unskip all the other task types. */
-  if (c->nodeID == nodeID && cell_is_active_black_holes(c, e)) {
-
-    /* If the cell doesn't have any pair/sub_pair type tasks,
-     * then we haven't unskipped all the implicit tasks yet. */
-    if (c->black_holes.density_ghost != NULL)
-      scheduler_activate(s, c->black_holes.density_ghost);
-    if (c->black_holes.swallow_ghost_1 != NULL)
-      scheduler_activate(s, c->black_holes.swallow_ghost_1);
-    if (c->black_holes.swallow_ghost_2 != NULL)
-      scheduler_activate(s, c->black_holes.swallow_ghost_2);
-    if (c->black_holes.swallow_ghost_3 != NULL)
-      scheduler_activate(s, c->black_holes.swallow_ghost_3);
+  if (c->nodeID == nodeID  && cell_is_active_black_holes(c, e)) {
     if (c->black_holes.black_holes_in != NULL)
       scheduler_activate(s, c->black_holes.black_holes_in);
     if (c->black_holes.black_holes_out != NULL)
       scheduler_activate(s, c->black_holes.black_holes_out);
+  }
+
+  if (cell_is_active_black_holes(c, e)) {
+    if (c->black_holes.swallow_ghost_1 != NULL) {
+      scheduler_activate(s, c->black_holes.swallow_ghost_1);
+      c->black_holes.swallow_ghost_1->flags |= 32;
+    }
+
+    if (c->black_holes.density_ghost != NULL)
+      scheduler_activate(s, c->black_holes.density_ghost);
+    if (c->black_holes.swallow_ghost_2 != NULL)
+      scheduler_activate(s, c->black_holes.swallow_ghost_2);
+    if (c->black_holes.swallow_ghost_3 != NULL)
+      scheduler_activate(s, c->black_holes.swallow_ghost_3);
+  }
+
+  /* Unskip all the other task types. */
+  if (c->nodeID == nodeID && c->black_holes.count > 0 && cell_is_active_black_holes(c, e)) {
+
+    /* If the cell doesn't have any pair/sub_pair type tasks,
+     * then we haven't unskipped all the implicit tasks yet. */
     if (c->kick1 != NULL) scheduler_activate(s, c->kick1);
     if (c->kick2 != NULL) scheduler_activate(s, c->kick2);
     if (c->timestep != NULL) scheduler_activate(s, c->timestep);
