@@ -623,7 +623,7 @@ void cell_activate_drift_part(struct cell *c, struct scheduler *s);
 void cell_activate_drift_gpart(struct cell *c, struct scheduler *s);
 void cell_activate_drift_spart(struct cell *c, struct scheduler *s);
 void cell_activate_drift_sink(struct cell *c, struct scheduler *s);
-void cell_activate_drift_bpart(struct cell *c, struct scheduler *s, long long flag);
+void cell_activate_drift_bpart(struct cell *c, struct scheduler *s);
 void cell_activate_sync_part(struct cell *c, struct scheduler *s);
 void cell_activate_rt_sorts(struct cell *c, int sid, struct scheduler *s);
 void cell_activate_hydro_sorts(struct cell *c, int sid, struct scheduler *s);

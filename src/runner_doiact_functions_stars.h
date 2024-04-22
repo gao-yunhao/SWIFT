@@ -1280,7 +1280,7 @@ void DOPAIR1_BRANCH_STARS(struct runner *r, struct cell *ci, struct cell *cj) {
                 cj->stars.dx_max_sort_old > space_maxreldx * cj->dmin))
     error("Interacting unsorted cells.");
 
-#ifdef aSWIFT_DEBUG_CHECKS
+#ifdef SWIFT_DEBUG_CHECKS
   if (do_ci) {
     // MATTHIEU: This test is faulty. To be fixed...
     // RUNNER_CHECK_SORT(hydro, part, cj, ci, sid);

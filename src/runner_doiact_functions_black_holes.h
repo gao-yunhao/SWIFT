@@ -331,11 +331,9 @@ void DO_NONSYM_PAIR1_BH_NAIVE(struct runner *r, struct cell *restrict ci,
 #ifdef SWIFT_DEBUG_CHECKS
       /* Check that particles have been drifted to the current time */
       if (bi->ti_drift != e->ti_current)
-        error("Particle bi not drifted to current time bi_node=%d bj_node=%d ci_count=%d cj_count=%d ci_active=%d cj_active=%d", 
-	      ci->nodeID, cj->nodeID, bcount_i, bcount_j, bpart_is_active(bi, e), bpart_is_active(bj,e));
+        error("Particle bi not drifted to current time");
       if (bj->ti_drift != e->ti_current)
-        error("Particle bj not drifted to current time bi_node=%d bj_node=%d ci_count=%d cj_count=%d ci_active=%d cj_active=%d", 
-	      ci->nodeID, cj->nodeID, bcount_i, bcount_j, bpart_is_active(bi, e), bpart_is_active(bj,e));
+        error("Particle bj not drifted to current time");
 #endif
 
       if (r2 < hig2) {
@@ -857,28 +855,14 @@ void DOSUB_PAIR1_BH(struct runner *r, struct cell *ci, struct cell *cj,
         error("Interacting undrifted cells (bparts).");
 
       if (cj->hydro.count != 0 && !cell_are_part_drifted(cj, e))
-        error("Interacting undrifted cells (parts). ci->nodeID=%d cj->nodeID=%d ci_BH_count=%d cj_BH_count=%d ci_gas_count=%d cj_gas_count=%d ci_active=%d cj_active=%d", 
-	      ci->nodeID, cj->nodeID,
-	      ci->black_holes.count,
-	      cj->black_holes.count,
-	      ci->hydro.count,
-	      cj->hydro.count,
-	      cell_is_active_black_holes(ci, e),
-	      cell_is_active_black_holes(cj, e));
+        error("Interacting undrifted cells (parts).");
     }
 
     if (do_cj) {
 
       /* Make sure both cells are drifted to the current timestep. */
       if (ci->hydro.count != 0 && !cell_are_part_drifted(ci, e))
-        error("Interacting undrifted cells (parts). ci->nodeID=%d cj->nodeID=%d ci_BH_count=%d cj_BH_count=%d ci_gas_count=%d cj_gas_count=%d ci_active=%d cj_active=%d",
-	      ci->nodeID, cj->nodeID,
-	      ci->black_holes.count,
-	      cj->black_holes.count,
-	      ci->hydro.count,
-	      cj->hydro.count,
-	      cell_is_active_black_holes(ci, e),
-	      cell_is_active_black_holes(cj, e));
+        error("Interacting undrifted cells (parts).");
 
       if (!cell_are_bpart_drifted(cj, e))
         error("Interacting undrifted cells (bparts).");

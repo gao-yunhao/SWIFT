@@ -956,7 +956,7 @@ void engine_do_tasks_count_mapper(void *map_data, int num_elements,
 }
 
 void engine_do_tasks_skip_count_mapper(void *map_data, int num_elements,
-                                  void *extra_data) {
+                                       void *extra_data) {
 
   const struct task *tasks = (struct task *)map_data;
   int *const global_counts = (int *)extra_data;
@@ -967,8 +967,7 @@ void engine_do_tasks_skip_count_mapper(void *map_data, int num_elements,
 
   /* Add task counts locally */
   for (int k = 0; k < num_elements; k++) {
-    if (tasks[k].skip)
-      local_counts[(int)tasks[k].type] += 1;
+    if (tasks[k].skip) local_counts[(int)tasks[k].type] += 1;
   }
 
   /* Update the global counts */
@@ -976,7 +975,6 @@ void engine_do_tasks_skip_count_mapper(void *map_data, int num_elements,
     if (local_counts[k]) atomic_add(global_counts + k, local_counts[k]);
   }
 }
-
 
 /**
  * @brief Prints the number of tasks in the engine
@@ -1058,7 +1056,6 @@ void engine_print_task_counts(const struct engine *e) {
   for (int k = 1; k < task_type_count; k++)
     printf(" %s=%i", taskID_names[k], counts[k]);
   fflush(stdout);
-
 
   if (e->verbose)
     message("took %.3f %s.", clocks_from_ticks(getticks() - tic),
@@ -1438,9 +1435,8 @@ void engine_rebuild(struct engine *e, const int repartitioned,
 
     if (t->activated_by_unskip && !t->activated_by_marktask) {
       error("Task %s/%s activated by unskip and not by marktask!",
-            taskID_names[t->type], subtaskID_names[t->subtype]);      
+            taskID_names[t->type], subtaskID_names[t->subtype]);
     }
-
 
     if (!t->activated_by_unskip && t->activated_by_marktask) {
       error("Task %s/%s activated by marktask and not by unskip!",

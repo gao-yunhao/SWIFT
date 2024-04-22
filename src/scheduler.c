@@ -2775,12 +2775,6 @@ struct task *scheduler_done(struct scheduler *s, struct task *t) {
   /* Mark the task as skip. */
   t->skip = 1;
 
-  if (t->type == task_type_drift_bpart)
-    t->flags = 0;
-  if (t->type == task_type_bh_swallow_ghost1)
-    t->flags = 0;
-
-
   /* Return the next best task. Note that we currently do not
      implement anything that does this, as getting it to respect
      priorities is too tricky and currently unnecessary. */
