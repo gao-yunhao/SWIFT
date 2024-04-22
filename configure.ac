@@ -2770,7 +2770,7 @@ esac
 # Forcing terms
 AC_ARG_WITH([forcing],
    [AS_HELP_STRING([--with-forcing=<term>],
-      [Hydrodynamics forcing terms @<:@none, roberts-flow, roberts-flow-acceleration default: none@:>@]
+      [Hydrodynamics forcing terms @<:@none, roberts-flow, roberts-flow-acceleration , abc-flowdefault: none@:>@]
    )],
    [with_forcing="$withval"],
    [with_forcing="none"]
@@ -2784,6 +2784,9 @@ case "$with_forcing" in
    ;;
    roberts-flow-acceleration)
       AC_DEFINE([FORCING_ROBERTS_FLOW_ACCELERATION], [1], [Roberts' flow external forcing terms entering the equations as an acceleration term])
+   ;;
+   abc-flow)
+      AC_DEFINE([FORCING_ABC_FLOW], [1], [ABC flow external forcing terms])
    ;;
    *)
       AC_MSG_ERROR([Unknown external forcing term: $with_forcing])
@@ -3086,6 +3089,9 @@ AM_CONDITIONAL([HAVEEAGLEKINETICFEEDBACK], [test "$with_feedback" = "EAGLE-kinet
 
 # check if using grackle cooling
 AM_CONDITIONAL([HAVEGRACKLECOOLING], [test "$with_cooling" = "grackle"])
+
+# check if using EAGLE floor
+AM_CONDITIONAL([HAVEEAGLEFLOOR], [test "$with_entropy_floor" = "EAGLE"])
 
 # check if using gear feedback
 AM_CONDITIONAL([HAVEGEARFEEDBACK], [test "$with_feedback" = "GEAR"])
