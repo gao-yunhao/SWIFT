@@ -1419,8 +1419,6 @@ void engine_rebuild(struct engine *e, const int repartitioned,
   /* Reset all the tasks */
   for (int i = 0; i < e->sched.nr_tasks; ++i) {
     e->sched.tasks[i].skip = 1;
-    if (e->sched.tasks[i].type == task_type_drift_bpart) e->sched.tasks[i].flags = 0;
-    if (e->sched.tasks[i].type == task_type_bh_swallow_ghost1) e->sched.tasks[i].flags = 0;
   }
   for (int i = 0; i < e->sched.active_count; ++i) {
     e->sched.tid_active[i] = -1;
@@ -1439,51 +1437,15 @@ void engine_rebuild(struct engine *e, const int repartitioned,
     struct task *t = &e->sched.tasks[i];
 
     if (t->activated_by_unskip && !t->activated_by_marktask) {
-
-
-      if (t->type == task_type_bh_swallow_ghost1) {
-	message("nodeID = %d, count=%d active=%d flags=%lld",
-		t->ci->nodeID, t->ci->black_holes.count, cell_is_active_black_holes(t->ci, e), t->flags);
-	message("Task %s/%s activated by unskip and not by marktask!",
-	      taskID_names[t->type], subtaskID_names[t->subtype]);
-	continue;
-      }
-
-      if (t->type == task_type_drift_bpart) {
-	error("Task %s/%s activated by unskip and not by marktask! nodeID = %d, count=%d active=%d flag=%lld",
-	      taskID_names[t->type], subtaskID_names[t->subtype] ,
-	      t->ci->nodeID, t->ci->black_holes.count, cell_is_active_black_holes(t->ci, e), t->flags);
-      }
-
-
-
       error("Task %s/%s activated by unskip and not by marktask!",
             taskID_names[t->type], subtaskID_names[t->subtype]);      
     }
 
 
     if (!t->activated_by_unskip && t->activated_by_marktask) {
-
-      if (t->type == task_type_bh_swallow_ghost1) {
-	message("nodeID = %d, count=%d active=%d flag=%lld",
-		t->ci->nodeID, t->ci->black_holes.count, cell_is_active_black_holes(t->ci, e), t->flags);
-	message("Task %s/%s activated by marktask and not by unskip!",
-	      taskID_names[t->type], subtaskID_names[t->subtype]);
-	continue;
-      }
-
-      if (t->type == task_type_drift_bpart) {
-	error("Task %s/%s activated by marktask and not by unskip! nodeID = %d, count=%d active=%d flag=%lld",
-	      taskID_names[t->type], subtaskID_names[t->subtype] ,
-	      t->ci->nodeID, t->ci->black_holes.count, cell_is_active_black_holes(t->ci, e), t->flags);
-      }
-
       error("Task %s/%s activated by marktask and not by unskip!",
             taskID_names[t->type], subtaskID_names[t->subtype]);
-
     }
-
-
 
     t->activated_by_marktask = 0;
     t->activated_by_unskip = 0;
