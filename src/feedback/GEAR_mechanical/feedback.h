@@ -34,6 +34,12 @@ void feedback_update_part(struct part* p, struct xpart* xp,
 
 void feedback_reset_part(struct part* p, struct xpart* xp);
 
+void feedback_will_do_feedback_individual_star(
+    struct spart* sp, const struct feedback_props* feedback_props,
+    const int with_cosmology, const struct cosmology* cosmo, const double time,
+    const struct unit_system* us, const struct phys_const* phys_const,
+    const integertime_t ti_current, const double time_base);
+
 void feedback_will_do_feedback(
     struct spart* sp, const struct feedback_props* feedback_props,
     const int with_cosmology, const struct cosmology* cosmo, const double time,
