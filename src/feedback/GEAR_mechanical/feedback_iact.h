@@ -132,11 +132,6 @@ runner_iact_nonsym_feedback_prep1(const float r2, const float dx[3],
   si->feedback_data.f_minus_denom[0] += scalar_weight_j*fabs(dx_ij_minus[0]);
   si->feedback_data.f_minus_denom[1] += scalar_weight_j*fabs(dx_ij_minus[1]);
   si->feedback_data.f_minus_denom[2] += scalar_weight_j*fabs(dx_ij_minus[2]);
-
-
-  /* Compute the sum of the gas properties around the star (to compute the mean) */
-  si->feedback_data.sum_gas_density += pj->rho;
-  si->feedback_data.sum_gas_metallicity += chemistry_get_total_metal_mass_fraction_for_feedback(pj);
 }
 
 
@@ -250,6 +245,12 @@ runner_iact_nonsym_feedback_prep3(const float r2, const float dx[3],
 
   /* Notice that we will multiply by m_ej later on */
   si->feedback_data.beta_2_accumulator += w_prime_ij*w_j_bar_norm/mj;
+
+
+  /* Compute the weigthed average of the gas properties around the star with
+     our isotropic weighting scheme. */
+  si->feedback_data.weighted_gas_density += w_j_bar_norm*pj->rho;
+  si->feedback_data.weighted_gas_metallicity += w_j_bar_norm*chemistry_get_total_metal_mass_fraction_for_feedback(pj);
   
 }
 
@@ -311,6 +312,7 @@ runner_iact_nonsym_feedback_apply(
     const struct unit_system* us, const integertime_t ti_current) {
 
   const float r_max_2 = fb_props->r_max * fb_props->r_max;
+  const float internal_energy_snowplow_exponent = -6.5;
 
   /* If the particle is farther than the maximal radius, it does not receive
      feedback */
@@ -415,10 +417,7 @@ runner_iact_nonsym_feedback_apply(
   /* If we do not resolve the Taylor-Sedov, we rescale the internal energy */
   if (r2 > r_cool*r_cool) {
     const double r = sqrt(r2);
-    dU *= pow(r/r_cool, -6.5);
-    dp_prime[0] *= pow(r/r_cool, -6.5);
-    dp_prime[1] *= pow(r/r_cool, -6.5);
-    dp_prime[2] *= pow(r/r_cool, -6.5);
+    dU *= pow(r/r_cool, internal_energy_snowplow_exponent);
 
     message("We do not resolve the Sedov-Taylor (r_cool = %e). Rescaling dU.", r_cool);
   } /* else we do not change dU */
@@ -438,18 +437,13 @@ runner_iact_nonsym_feedback_apply(
 
   /* Now, we take into account for potentially unresolved energy-conserving
      phase of the SN explosion (xsi != 1 in such cases). If we cannot resolve
-     this phase, we give momentum mostly. The thermal energy is radiated away
-     because of cooling.
-
-     Also, we need to rescale the momentum if the gas is way beyond the cooling
-     radius. Otherwise we can give p_terminal at unphysical distances and
-     create large bubbles ~100 kpc. */
+     this phase, we give mostly momentum, but also thermal energy. The thermal
+     energy will be radiated away because of cooling. */
   const double p_available = sqrt(2.0*epsilon*m_ej);
   const double p_terminal = feedback_get_SN_terminal_momentum(si, pj, xpj, phys_const, us);
   const double r = sqrt(r2);
   const double r_cool =  feedback_get_SN_cooling_radius(si, p_available, p_terminal);
-  const double ISM_merging_term = pow(r/r_cool, -6.5);
-  const double xsi = min(1, p_terminal/(psi * p_available)*ISM_merging_term);
+  const double xsi = min(1, p_terminal/(psi * p_available));
 
   /* Finally, the ejected velocity is */
   double p_ej = psi*xsi*p_available;
@@ -469,11 +463,11 @@ runner_iact_nonsym_feedback_apply(
      radiated because of cooling. So we need to rescale the internal energy we
      give to the gas. */
   double U_therm = 0;
-  if (r > r_cool) {
-    U_therm = U_tot*ISM_merging_term; /* Energy lost in radiation */
-  } else {
-    U_therm = U_tot ; /* Energy not yet lost in radiation */
-  }
+  /* if (r > r_cool) { */
+  /*   U_therm = U_tot*pow(r/r_cool, internal_energy_snowplow_exponent); /\* Energy lost in radiation *\/ */
+  /* } else { */
+  /*   U_therm = U_tot ; /\* Energy not yet lost in radiation *\/ */
+  /* } */
 
   const double dU = w_j_bar_norm * U_therm;
 
@@ -490,9 +484,9 @@ runner_iact_nonsym_feedback_apply(
 
   const double dp_norm_2 = dp[0]*dp[0] +  dp[1]*dp[1] +  dp[2]*dp[2];
 
-  /* message("beta_1 = %e, beta_2 = %e, psi = %e, psi*p_available = %e, p_available = %e", beta_1, beta_2, psi,  psi*p_available, p_available); */
-  /* message("xsi = %e, p_t = %e, r = %e, r_cool = %e, ISM_merging = %e", xsi, p_terminal, r, r_cool, ISM_merging_term); */
-  /* message("E_ej = %e, E_tot = %e, U_tot = %e, E_kin_tot = %e, U_therm = %e, p_ej = %e, p_terminal = %e, dU = %e, f_therm = %e", E_ej, E_tot, U_tot, epsilon, U_therm, p_ej, p_terminal, dU, f_therm); */
+  message("beta_1 = %e, beta_2 = %e, psi = %e, psi*p_available = %e, p_available = %e", beta_1, beta_2, psi,  psi*p_available, p_available);
+  message("xsi = %e, p_t = %e, r = %e, r_cool = %e, ISM_merging = %e", xsi, p_terminal, r, r_cool, snowplow_distance_term);
+  message("E_ej = %e, E_tot = %e, U_tot = %e, E_kin_tot = %e, U_therm = %e, p_ej = %e, p_terminal = %e, dU = %e, f_therm = %e", E_ej, E_tot, U_tot, epsilon, U_therm, p_ej, p_terminal, dU, f_therm);
 
 #endif /* FEEDBACK_GEAR_MECHANICAL_MODE == 2 */
 
@@ -520,7 +514,7 @@ runner_iact_nonsym_feedback_apply(
   si->feedback_data.delta_p_check[1] += dp[1];
   si->feedback_data.delta_p_check[2] += dp[2];
 
-  /* message("Conservation check (star %lld): Sum dm_i = %e (m_ej), Sum |dp_i| = %e (p_ej), Sum dp_i = (%e, %e, %e) (0), m_ej = %e, E_ej = %e, p_ej = %e", si->id, si->feedback_data.delta_m_check, si->feedback_data.delta_p_norm_check, si->feedback_data.delta_p_check[0], si->feedback_data.delta_p_check[1], si->feedback_data.delta_p_check[2], m_ej, E_ej, p_ej); */
+  message("Conservation check (star %lld): Sum dm_i = %e (m_ej), Sum |dp_i| = %e (p_ej), Sum dp_i = (%e, %e, %e) (0), m_ej = %e, E_ej = %e, p_ej = %e", si->id, si->feedback_data.delta_m_check, si->feedback_data.delta_p_norm_check, si->feedback_data.delta_p_check[0], si->feedback_data.delta_p_check[1], si->feedback_data.delta_p_check[2], m_ej, E_ej, p_ej);
 
 }
 

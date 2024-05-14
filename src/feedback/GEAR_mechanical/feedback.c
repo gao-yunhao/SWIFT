@@ -395,8 +395,8 @@ void feedback_init_spart(struct spart* sp) {
   sp->feedback_data.E_total_accumulator = 0;
   sp->feedback_data.beta_1_accumulator = 0;
   sp->feedback_data.beta_2_accumulator = 0;
-  sp->feedback_data.sum_gas_density = 0;
-  sp->feedback_data.sum_gas_metallicity = 0;
+  sp->feedback_data.weighted_gas_density = 0;
+  sp->feedback_data.weighted_gas_metallicity = 0;
   sp->feedback_data.density_wcount = 0;
 
   sp->feedback_data.delta_m_check = 0.0;
@@ -455,8 +455,8 @@ void feedback_reset_feedback(struct spart* sp,
   sp->feedback_data.E_total_accumulator = 0;
   sp->feedback_data.beta_1_accumulator = 0;
   sp->feedback_data.beta_2_accumulator = 0;
-  sp->feedback_data.sum_gas_density = 0;
-  sp->feedback_data.sum_gas_metallicity = 0;
+  sp->feedback_data.weighted_gas_density = 0;
+  sp->feedback_data.weighted_gas_metallicity = 0;
   sp->feedback_data.density_wcount = 0;
 
   sp->feedback_data.delta_m_check = 0.0;
@@ -804,7 +804,7 @@ double feedback_get_SN_terminal_momentum(const struct spart* restrict sp,
       sp->feedback_data.density_wcount * pow_dimension(1.0 / sp->h);
 
   /* Get metallicity factor */
-  const double Z_mean = sp->feedback_data.sum_gas_metallicity / (n_neighbours);
+  const double Z_mean = sp->feedback_data.weighted_gas_metallicity / (n_neighbours);
   const double Z_sun = 0.0134; /* Find the exact value somewhere */
   double metallicity_factor = 0.0;
 
@@ -819,7 +819,7 @@ double feedback_get_SN_terminal_momentum(const struct spart* restrict sp,
   /* Get number density factor in cgs */
   const double m_p_cgs = phys_const->const_proton_mass *
                          units_cgs_conversion_factor(us, UNIT_CONV_MASS);
-  double density_mean = sp->feedback_data.sum_gas_density / n_neighbours;
+  double density_mean = sp->feedback_data.weighted_gas_density / n_neighbours;
   density_mean = density_mean *
                  units_cgs_conversion_factor(us, UNIT_CONV_DENSITY) / m_p_cgs;
 
@@ -864,7 +864,7 @@ double feedback_get_SN_cooling_radius(const struct spart* restrict sp,
   const double n_neighbours =
       sp->feedback_data.density_wcount * pow_dimension(1.0 / sp->h);
 
-  const double mean_density =  sp->feedback_data.sum_gas_density / n_neighbours;
+  const double mean_density =  sp->feedback_data.weighted_gas_density / n_neighbours;
 
   /* Compute the cooling radius */
   const double second_part = p_terminal*p_terminal/(p_SN_initial*p_SN_initial) - 1;
