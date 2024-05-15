@@ -529,7 +529,7 @@ __attribute__((always_inline)) INLINE static void sink_swallow_part(
   sp->number_of_direct_gas_swallows++;
 
 /* #ifdef SWIFT_DEBUG_CHECKS */
-  const float dr = sqrt(dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2]);
+  /* const float dr = sqrt(dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2]); */
   /* message( */
   /*     "sink %lld swallow gas particle %lld. " */
   /*     "(Mass = %e, " */
