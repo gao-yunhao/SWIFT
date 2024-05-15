@@ -378,7 +378,8 @@ INLINE static int sink_is_forming(
   }
 
 /* #ifdef SWIFT_DEBUG_CHECKS */
-  message("Gas particle %lld can form a sink ! Gas velocity: v= (%lf, %lf, %lf).", p->id, p->v[0], p->v[1], p->v[2]);
+  /* message("Gas particle %lld can form a sink ! Gas velocity: v= (%lf, %lf, %lf).", p->id, p->v[0], p->v[1], p->v[2]); */
+  message("A new sink (%lld) is born!", p->id);
 /* #endif */
   return 1;
 }
@@ -529,14 +530,14 @@ __attribute__((always_inline)) INLINE static void sink_swallow_part(
 
 /* #ifdef SWIFT_DEBUG_CHECKS */
   const float dr = sqrt(dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2]);
-  message(
-      "sink %lld swallow gas particle %lld. "
-      "(Mass = %e, "
-      "Delta_v = [%f, %f, %f] U_V, "
-      "Delta_x = [%f, %f, %f] U_L, "
-      "Delta_v_rad = %f)",
-      sp->id, p->id, sp->mass, -dv[0], -dv[1], -dv[2], -dx[0], -dx[1], -dx[2],
-      (dv[0] * dx[0] + dv[1] * dx[1] + dv[2] * dx[2]) / dr);
+  /* message( */
+  /*     "sink %lld swallow gas particle %lld. " */
+  /*     "(Mass = %e, " */
+  /*     "Delta_v = [%f, %f, %f] U_V, " */
+  /*     "Delta_x = [%f, %f, %f] U_L, " */
+  /*     "Delta_v_rad = %f)", */
+  /*     sp->id, p->id, sp->mass, -dv[0], -dv[1], -dv[2], -dx[0], -dx[1], -dx[2], */
+  /*     (dv[0] * dx[0] + dv[1] * dx[1] + dv[2] * dx[2]) / dr); */
   /* #endif */
 }
 
@@ -697,7 +698,7 @@ const struct sink_props* sink_props) {
   sp->gpart->v_full[0] = sp->v[0];
   sp->gpart->v_full[1] = sp->v[1];
   sp->gpart->v_full[2] = sp->v[2];
-  message("New star velocity: v = (%lf %lf %lf). Sink velocity: v = (%lf %lf %lf). Sigma = %lf", sp->v[0], sp->v[1], sp->v[2],si->v[0], si->v[1], si->v[2], sigma);
+  /* message("New star velocity: v = (%lf %lf %lf). Sink velocity: v = (%lf %lf %lf). Sigma = %lf", sp->v[0], sp->v[1], sp->v[2],si->v[0], si->v[1], si->v[2], sigma); */
 #else
   error("Code not compiled with GSL. Can't compute Star new velocity.");
 #endif
