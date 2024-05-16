@@ -227,6 +227,9 @@ void feedback_will_do_feedback_individual_star(
                                            ti_begin, star_age_beg_step_safe,
                                            dt_enrichment);
 
+  /* Apply the energy efficiency factor */
+  sp->feedback_data.energy_ejected *= feedback_props->supernovae_efficiency;
+
   /* apply the energy efficiency factor */
   sp->feedback_data.energy_ejected *= feedback_props->supernovae_efficiency;
 
