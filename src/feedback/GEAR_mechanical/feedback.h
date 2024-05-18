@@ -114,4 +114,6 @@ double feedback_get_SN_cooling_radius(const struct spart* restrict sp,
 				      double p_SN_initial,
 				      double p_terminal) ;
 
+double feedback_compute_momentum_correction_factor_for_multiple_sn_events(struct part* p, struct xpart* xp, double old_mass, double new_mass);
+
 #endif /* SWIFT_FEEDBACK_GEAR_MECHANICAL_H */
