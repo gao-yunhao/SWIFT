@@ -232,10 +232,9 @@ __attribute__((always_inline)) INLINE static void cooling_read_parameters(
       parameter_file, "GrackleCooling:thermal_time_myr");
   cooling->thermal_time *= phys_const->const_year * 1e6;
 
-
   /* Maximal cooling density (in acc) */
   cooling->cooling_density_max = parser_get_param_double(
-      parameter_file, "GrackleCooling:maximal_density");
+      parameter_file, "GrackleCooling:maximal_density_Hpcm3");
 
   /* Convert from acc to intenal units */
   const double m_p_cgs = phys_const->const_proton_mass *
