@@ -88,7 +88,7 @@ For the feedback, it can be made more efficient by turning off the cooling durin
 
 The self shielding method is defined by ``GrackleCooling:self_shielding_method`` where 0 means no self shielding, > 0 means a method defined in Grackle (see Grackle documentation for more information) and -1 means GEAR's self shielding that simply turn off the UV background when reaching a given density (``GrackleCooling:self_shielding_threshold_atom_per_cm3``).
 
-To avoid interpolation errors within Grackle when the density of the particles exceeds the maximal density in the ``GrackleCooling:cloudy_table``, a maximal (physical) density can be set with the ``GrackleCooling:maximal_density`` parameter. The density passed to Grackle is *the minimum of this density and the gas particle (physical) density*. A negative value (:math:`< 0`) deactivates the maximal density, i.e. there is no maximal density limit.
+To avoid interpolation errors within Grackle when the density of the particles exceeds the maximal density in the ``GrackleCooling:cloudy_table``, a maximal (physical) density can be set with the ``GrackleCooling:maximal_density_Hpcm3`` parameter. The density passed to Grackle is *the minimum of this density and the gas particle (physical) density*. A negative value (:math:`< 0`) deactivates the maximal density, i.e. there is no maximal density limit.
 The purpose of this parameter is the following. The Cloudy tables provided by Grackle are limited in density (typically to :math:`10^3 \; \mathrm{atoms/cm}^3`). In high-resolution simulations, particles can have densities higher than :math:`10^3 \; \mathrm{atoms/cm}^3`. Then, the interpolation performed by Grackle is erroneous and leads to oscillations (the internal energy derivatives oscillates between negative values and positive ones with magnitude, see example below) in the internal energy integration which fails to converge. In this case, Grackle writes the following error (with a translation of what the values mean):
 
 .. code:: text
@@ -121,7 +121,7 @@ Here is the complete section in the parameter file:
     thermal_time_myr: 5                          # (optional) Time (in Myr) for adiabatic cooling after a feedback event.
     self_shielding_method: -1                    # (optional) Grackle (1->3 for Grackle's ones, 0 for none and -1 for GEAR)
     self_shielding_threshold_atom_per_cm3: 0.007 # Required only with GEAR's self shielding. Density threshold of the self shielding
-    maximal_density:         1e4                 # Maximal density (in atoms/cm^3) for cooling. Higher densities are floored to this value to ensure grackle works properly when interpolating beyond the cloudy_table maximal density. A value < 0 deactivates this parameter.
+    maximal_density_Hpcm3:         1e4                 # Maximal density (in atoms/cm^3) for cooling. Higher densities are floored to this value to ensure grackle works properly when interpolating beyond the cloudy_table maximal density. A value < 0 deactivates this parameter.
     HydrogenFractionByMass : 1.                  # Hydrogen fraction by mass (default is 0.76)
     use_radiative_transfer : 1                   # Arrays of ionization and heating rates are provided
     RT_heating_rate_cgs    : 0                   # heating         rate in units of / nHI_cgs
