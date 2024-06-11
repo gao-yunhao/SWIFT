@@ -75,10 +75,13 @@ The most critical parameter is ``cut_off_radius``. As explained in the theory, t
 
 On the contrary, if you set a too high cut-off radius, then sinks will accrete a lot of gas particles and spawn a lot of stars in the same cell, which the code might not like and crash with the error:
 
-``runner_sort.c:runner_do_sort_ascending():78: The stack size for sorting is too small. Either increase it or reduce the number of parts per cell.``
+``runner_others.c:runner_do_star_formation_sink():274: Too many stars in the cell tree leaf! The sorting task will not be able to perform its duties. Possible solutions: (1) The code need to be run with different star formation parameters to reduce the number of star particles created. OR (2) The size of the sorting stack must be increased in runner_sort.c.``
 
-This can be mitigated by choosing a higher value of ``stellar_particle_mass`` and ``stellar_particle_mass_first_stars``. Of course, this comes at the price of having fewer individual stars. Finally, all parameters will depend on your needs.  
+This problem can be mitigated by choosing a higher value of ``stellar_particle_mass`` and ``stellar_particle_mass_first_stars``, or higher values of ``minimal_discrete_mass`` and ``minimal_discrete_mass_first_stars``. Of course, this comes at the price of having fewer individual stars. Finally, all parameters will depend on your needs.
 
+*If you do not want to change your parameters*, you can increase the ``sort_stack_size`` variable at the beginning ``runner_sort.c``. The default value is 10 in powers of 2 (so the stack size is 1024 particles). Increase it to the desired value. Be careful to not overestimate this.
+
+Notice that this model does not have parameters to control the star formation rate of the sink. The SFR is self-regulated by the gas/sink accretion and other feedback mechanisms. Supernovae tend to create bubbles of lower density at the site of star formation, removing the gas and preventing further gas accretion. However, the sink might run into this stack size problem by the time the first supernovae explode. Other pre-stellar feedback mechanisms could do the job earlier, though they are not implemented in GEAR.
 
 .. note:: 
    We provide a piece of general advice: do some calibration on low-resolution simulations. This will help to see what works and what does not work. Keep in mind that you might want to put a higher ``stellar_particle_mass_X`` at the beginning to avoid spawning too many stars. For the high-resolution simulations, you then can lower the particle's mass.

@@ -553,7 +553,6 @@ void runner_do_sinks_gas_swallow(struct runner *r, struct cell *c, int timer) {
   struct part *parts = c->hydro.parts;
   struct xpart *xparts = c->hydro.xparts;
 
-  timebin_t max_bin = e->max_active_bin;
   integertime_t ti_current = e->ti_current;
   integertime_t ti_beg_max = 0;
 
@@ -680,12 +679,8 @@ void runner_do_sinks_gas_swallow(struct runner *r, struct cell *c, int timer) {
 
       if (part_is_inhibited(p, e)) continue;
 
-      integertime_t ti_beg = 0;
-
-      if (p->time_bin <= max_bin) {
-        ti_beg = get_integer_time_begin(ti_current + 1, p->time_bin);
-      }
-
+      integertime_t ti_beg =
+          get_integer_time_begin(ti_current + 1, p->time_bin);
       ti_beg_max = max(ti_beg, ti_beg_max);
     } /* Loop over the parts */
   }   /* Cell is not split */

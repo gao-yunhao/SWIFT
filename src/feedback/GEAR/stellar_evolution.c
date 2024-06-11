@@ -428,13 +428,9 @@ void stellar_evolution_evolve_individual_star(
       star_age_beg_step_myr, star_age_end_step_myr,
       sp->mass / phys_const->const_solar_mass);
 
-  /* Why is this commented ? */
-  /* disable the star */
-  // sp->feedback_data.will_do_feedback = 0;
-
-  /* Compute the initial mass */
-  // const float m_init = sp->sf_data.birth_mass / phys_const->const_solar_mass;
-  const float m_init = 0;  // in fact not necessary...
+  /* This is needed by stellar_evolution_compute_discrete_feedback_properties(),
+     but this is not used inside the function. */
+  const float m_init = 0;
 
   /* Get the integer number of supernovae */
   const int number_snia = 0;
@@ -853,7 +849,7 @@ float stellar_evolution_compute_initial_mass(const struct spart* restrict sp,
     m_init = sp->sf_data.birth_mass / phys_const->const_solar_mass;
   } else if (sp->feedback_data.star_type == star_population_continuous_IMF) {
     float minimal_discrete_mass = imf->minimal_discrete_mass;
-    float stellar_particle_mass = imf->stellar_particle_mass;
+    float stellar_particle_mass = imf->sink_stellar_particle_mass;
     double M_IMF_tot, M_d_dummy, M_c_dummy;
     initial_mass_function_compute_Mc_Md_Mtot(imf, minimal_discrete_mass,
 					   stellar_particle_mass, &M_c_dummy,

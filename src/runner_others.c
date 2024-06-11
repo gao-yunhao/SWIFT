@@ -63,6 +63,8 @@
 #include "timestep_limiter.h"
 #include "tracers.h"
 
+extern const int sort_stack_size;
+
 /**
  * @brief Calculate gravity acceleration from external potential
  *
@@ -250,19 +252,17 @@ void runner_do_star_formation_sink(struct runner *r, struct cell *c,
         error("TODO");
 #endif
 
-        /* loop counter for the random seed. Start by 1 as 0 is used at init
-         * (sink_copy_properties) */
-        int loop = 1;
-
 	/* Update the sink properties before spwaning stars */
 	sink_update_sink_properties_before_star_formation(s, e, sink_props, phys_const);
 
-        /* Spawn as many star as necessary */
-        while (sink_spawn_star(s, e, sink_props, cosmo, with_cosmology,
-                               phys_const, us)) {
+        /* Spawn as many stars as necessary
+           - loop counter for the random seed.
+           - Start by 1 as 0 is used at init (sink_copy_properties) */
+        for (int star_counter = 1; sink_spawn_star(
+                 s, e, sink_props, cosmo, with_cosmology, phys_const, us);
+             star_counter++) {
 
           /* Create a new star with a mass s->target_mass */
-
           struct spart *sp = cell_spawn_new_spart_from_sink(e, c, s);
           if (sp == NULL)
             error("Run out of available star particles or gparts");
@@ -271,17 +271,27 @@ void runner_do_star_formation_sink(struct runner *r, struct cell *c,
           sink_copy_properties_to_star(s, sp, e, sink_props, cosmo,
                                        with_cosmology, phys_const, us);
 
+          /* Verify that we do not have too many stars in the leaf for
+           * the sort task to be able to act. */
+          if (c->stars.count > (1LL << sort_stack_size))
+            error(
+                "Too many stars in the cell tree leaf! The sorting task will "
+                "not be able to perform its duties. Possible solutions: (1) "
+                "The code need to be run with different star formation "
+                "parameters to reduce the number of star particles created. OR "
+                "(2) The size of the sorting stack must be increased in "
+                "runner_sort.c.");
+
           /* Update the h_max */
           c->stars.h_max = max(c->stars.h_max, sp->h);
           c->stars.h_max_active = max(c->stars.h_max_active, sp->h);
 
 	  /* Update sink properties */
 	  sink_update_sink_properties_after_star_formation(s, sp, e, sink_props,
-							   phys_const, loop);
-	  loop++;
-        }
-      }
-    } /* Loop over the particles */
+							   phys_const, star_counter);
+        } /* Loop over the stars to spawn */
+      }   /* if sink_is_active */
+    }     /* Loop over the particles */
   }
 
   /* If we formed any stars, the star sorts are now invalid. We need to
@@ -1171,7 +1181,7 @@ void runner_do_rt_tchem(struct runner *r, struct cell *c, int timer) {
         error("Got part with negative time-step: %lld, %.6g", p->id, dt);
 #endif
 
-      rt_finalise_transport(p, dt, cosmo);
+      rt_finalise_transport(p, rt_props, dt, cosmo);
 
       /* And finally do thermochemistry */
       rt_tchem(p, xp, rt_props, cosmo, hydro_props, phys_const, us, dt);

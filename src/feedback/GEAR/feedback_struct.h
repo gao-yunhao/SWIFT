@@ -27,12 +27,12 @@
  * feedback ("star_population_no_SNII") or a stellar population with SNII
  * feedback ("stellar population").
  */
-typedef enum star_feedback_modes {
+enum star_feedback_type {
   single_star,                    /* particle representing a single star */
   star_population_continuous_IMF, /* particle representing a population of the
 				     continuous part of the IMF */
   star_population                 /* particle representing a population with the whole IMF */
-} star_feedback_type;
+};
 
 /**
  * @brief Feedback fields carried by each hydro particles
@@ -80,7 +80,7 @@ struct feedback_spart_data {
   char will_do_feedback;
 
   /* Feedback type in function of the star particle type */
-  star_feedback_type star_type;
+  enum star_feedback_type star_type;
 };
 
 #endif /* SWIFT_FEEDBACK_STRUCT_GEAR_H */

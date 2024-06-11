@@ -107,7 +107,7 @@ INLINE static void sink_write_particles(const struct sink* sinks,
                                         int with_cosmology) {
 
   /* Say how much we want to write */
-  *num_fields = 7;
+  *num_fields = 8;
 
   /* List what we want to write */
   list[0] = io_make_output_field_convert_sink(
@@ -137,6 +137,10 @@ INLINE static void sink_write_particles(const struct sink* sinks,
       number_of_sink_swallows, "Total number of sink merger events");
 
   list[6] = io_make_output_field(
+      "NumberOfGasSwallows", INT, 1, UNIT_CONV_NO_UNITS, 0.f, sinks,
+      number_of_gas_swallows, "Total number of gas merger events");
+
+  list[7] = io_make_output_field(
       "TargetMass", FLOAT, 1,  UNIT_CONV_MASS, 0.f, sinks,
       target_mass, "Sink target mass to spawn star particles");
 

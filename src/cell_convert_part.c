@@ -356,6 +356,7 @@ struct sink *cell_add_sink(struct engine *e, struct cell *const c) {
     /* Update the sink->gpart links (shift by 1) */
     for (size_t i = 0; i < n_copy; ++i) {
 
+      // TODO: Matthieu figure out whether this is strictly needed
       /* Skip inhibited (swallowed) sink particles */
       if (sink_is_inhibited(&c->sinks.parts[i + 1], e)) continue;
 
@@ -582,7 +583,7 @@ void cell_remove_part(const struct engine *e, struct cell *c, struct part *p,
   /* Mark the gpart as inhibited and stand-alone */
   if (p->gpart) {
     p->gpart->time_bin = time_bin_inhibited;
-    p->gpart->id_or_neg_offset = p->id;
+    p->gpart->id_or_neg_offset = 1;
     p->gpart->type = swift_type_dark_matter;
   }
 
@@ -655,7 +656,7 @@ void cell_remove_spart(const struct engine *e, struct cell *c,
   sp->time_bin = time_bin_inhibited;
   if (sp->gpart) {
     sp->gpart->time_bin = time_bin_inhibited;
-    sp->gpart->id_or_neg_offset = sp->id;
+    sp->gpart->id_or_neg_offset = 1;
     sp->gpart->type = swift_type_dark_matter;
   }
 
@@ -694,7 +695,7 @@ void cell_remove_bpart(const struct engine *e, struct cell *c,
   bp->time_bin = time_bin_inhibited;
   if (bp->gpart) {
     bp->gpart->time_bin = time_bin_inhibited;
-    bp->gpart->id_or_neg_offset = bp->id;
+    bp->gpart->id_or_neg_offset = 1;
     bp->gpart->type = swift_type_dark_matter;
   }
 
@@ -732,7 +733,7 @@ void cell_remove_sink(const struct engine *e, struct cell *c,
   sink->time_bin = time_bin_inhibited;
   if (sink->gpart) {
     sink->gpart->time_bin = time_bin_inhibited;
-    sink->gpart->id_or_neg_offset = sink->id;
+    sink->gpart->id_or_neg_offset = 1;
     sink->gpart->type = swift_type_dark_matter;
   }
 

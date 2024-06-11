@@ -106,7 +106,7 @@ INLINE static void sink_props_init_probabilities(
     /* Give the IMF the minimal discrete mass and the stellar_particle_mass
        (in M_sun). */
     imf->minimal_discrete_mass = minimal_discrete_mass;
-    imf->stellar_particle_mass = stellar_particle_mass;
+    imf->sink_stellar_particle_mass = stellar_particle_mass;
   } else {
     /* This is already in M_sun */
     minimal_discrete_mass = sp->minimal_discrete_mass_first_stars;
@@ -119,7 +119,7 @@ INLINE static void sink_props_init_probabilities(
     /* Give the IMF the minimal discrete mass and the stellar_particle_mass
        (in M_sun). */
     imf->minimal_discrete_mass = minimal_discrete_mass;
-    imf->stellar_particle_mass = stellar_particle_mass;
+    imf->sink_stellar_particle_mass = stellar_particle_mass;
   }
 
   /* sanity check */
@@ -155,8 +155,7 @@ INLINE static void sink_props_init_probabilities(
   /* if no continous part, return */
   if (Mc == 0) {
     imf->sink_Pc = 0;
-    imf->stellar_particle_mass = 0;
-
+    imf->sink_stellar_particle_mass = 0;
     message("probability of the continuous part    : %g", 0.);
     message("probability of the discrete   part    : %g", 1.);
     return;
@@ -265,7 +264,6 @@ INLINE static void sink_props_init(struct sink_props *sp,
       units_cgs_conversion_factor(us, UNIT_CONV_TEMPERATURE);
 
   sp->density_threshold /= units_cgs_conversion_factor(us, UNIT_CONV_DENSITY);
-
 
   /* Those variables are used to give the message output below in consistent
      units, i.e. in M_sun. */

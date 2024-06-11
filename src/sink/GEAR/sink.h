@@ -92,7 +92,7 @@ INLINE static void sink_update_target_mass(struct sink* sink,
 
   if (random_number < imf->sink_Pc) {
     /* We are dealing with the continous part of the IMF. */
-    sink->target_mass = imf->stellar_particle_mass;
+    sink->target_mass = imf->sink_stellar_particle_mass;
     sink->target_type = star_population_continuous_IMF;
   } else {
     /* We are dealing with the discrete part of the IMF. */
@@ -749,7 +749,7 @@ INLINE static void sink_copy_properties_to_star(
   sink_star_formation_give_new_velocity(e, sink, sp, sink_props);
 
   /* set feedback type */
-  sp->feedback_data.star_type = (star_feedback_type)sink->target_type;
+  sp->feedback_data.star_type = (enum star_feedback_type)sink->target_type;
 
   /* Initialize the feedback */
   if (sp->feedback_data.star_type == single_star)

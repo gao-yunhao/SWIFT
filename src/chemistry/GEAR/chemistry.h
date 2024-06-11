@@ -94,10 +94,6 @@ INLINE static void chemistry_copy_sink_properties(const struct part* p,
   for (int i = 0; i < GEAR_CHEMISTRY_ELEMENT_COUNT; i++) {
     sink->chemistry_data.metal_mass_fraction[i] =
         p->chemistry_data.smoothed_metal_mass_fraction[i];
-
-    /* Remove the metals taken by the star. */
-    /* not needed, the gas particle is removed */
-    // p->chemistry_data.metal_mass[i] *= mass / (mass + sp->mass);
   }
 }
 
