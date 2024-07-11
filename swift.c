@@ -787,7 +787,7 @@ int main(int argc, char *argv[]) {
 
   /* Read the parameter file */
   struct swift_params *params =
-      (struct swift_params *)malloc(sizeof(struct swift_params));
+      (struct swift_params *)malloc(sizeof(struct swift_params)); //只分配了一个结构体的大小
 
   /* In scope reference for a potential copy when restarting. */
   struct swift_params *refparams = NULL;
