@@ -214,7 +214,7 @@ int main(int argc, char *argv[]) {
   char *buffer = NULL;
 
   /* Parse the command-line parameters. */
-  struct argparse_option options[] = {
+  struct argparse_option options[] = {//所有可以在命令行中使用的选项
       OPT_HELP(),
 
       OPT_GROUP("  Simulation options:\n"),
@@ -366,8 +366,8 @@ int main(int argc, char *argv[]) {
   argparse_init(&argparse, options, swift_usage, 0);
   argparse_describe(&argparse, "\nParameters:",
                     "\nSee the file examples/parameter_example.yml for an "
-                    "example of parameter file.");
-  int nargs = argparse_parse(&argparse, argc, (const char **)argv);
+                    "example of parameter file.");//初始化语法参数结构体
+  int nargs = argparse_parse(&argparse, argc, (const char **)argv);//检查运行程序使用的语法是否正确（比如命令行中输入“-r”，这一行检查是否有这个选项）
 
   /* Deal with meta options */
   if (with_qla) {
