@@ -363,7 +363,7 @@ int main(int argc, char *argv[]) {
       OPT_END(),
   };
   struct argparse argparse;
-  argparse_init(&argparse, options, swift_usage, 0);
+  argparse_init(&argparse, options, swift_usage, 0);//swift_usage是前面定义的
   argparse_describe(&argparse, "\nParameters:",
                     "\nSee the file examples/parameter_example.yml for an "
                     "example of parameter file.");//初始化语法参数结构体
