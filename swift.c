@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
 #ifdef WITH_MPI
   /* Sync all output messages starting now to avoid verbose output
    * interleaving with greeting. */
-  fflush(stdout);
+  fflush(stdout); //清空标准输出的缓冲区，确保之前写入的数据立即被输出到屏幕或其它输出设备
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
