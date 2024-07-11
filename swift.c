@@ -409,7 +409,7 @@ int main(int argc, char *argv[]) {
     with_cooling = 1;
     with_feedback = 1;
   }
-
+//从这里开始一直到774行都是编译设置有关的检查
   /* Deal with thread numbers */
   if (nr_threads <= 0)
     error("Invalid number of threads provided (%d), must be > 0.", nr_threads);
