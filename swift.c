@@ -368,7 +368,7 @@ int main(int argc, char *argv[]) {
                     "\nSee the file examples/parameter_example.yml for an "
                     "example of parameter file.");//初始化语法参数结构体
   int nargs = argparse_parse(&argparse, argc, (const char **)argv);//检查运行程序使用的语法是否正确（比如命令行中输入“-r”，这一行检查是否有这个选项）
-
+                                                                   //并对with_...适当地赋值？
   /* Deal with meta options */
   if (with_qla) {
     with_hydro = 1;
