@@ -642,7 +642,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-#ifdef RT_NONE
+#ifdef RT_NONE //RT：Radiative Transfer
   if (with_rt) {
     error("Running with radiative transfer but compiled without it!");
   }
