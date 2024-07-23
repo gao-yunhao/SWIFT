@@ -866,7 +866,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  /* Prepare the domain decomposition scheme */
+  /* Prepare the domain decomposition scheme */ //partition开始。。。。。。。。。。。。。。。。。。
   struct repartition reparttype;
 #ifdef WITH_MPI
   struct partition initial_partition;
