@@ -153,7 +153,7 @@ void hydro_props_init(struct hydro_props *p,
       params, "SPH:H_mass_fraction", default_H_fraction);
 
   /* Mean molecular mass for neutral gas */
-  p->mu_neutral = 4. / (1. + 3. * p->hydrogen_mass_fraction);
+  p->mu_neutral = 4. / (1. + 3. * p->hydrogen_mass_fraction);//注意是质量占比
 
   /* Mean molecular mass for fully ionised gas */
   p->mu_ionised = 4. / (8. - 5. * (1. - p->hydrogen_mass_fraction));
