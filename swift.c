@@ -1035,7 +1035,7 @@ int main(int argc, char *argv[]) {
 
     /* Not restarting so look for the ICs. */
     /* Initialize unit system and constants */
-    units_init_from_params(&us, params, "InternalUnitSystem");
+    units_init_from_params(&us, params, "InternalUnitSystem");//定义内部常量相对于cgs单位制的大小。。。。。。。。。。。。。。
     phys_const_init(&us, params, &prog_const);
     if (myrank == 0) {
       message("Internal unit system: U_M = %e g.", us.UnitMass_in_cgs);
