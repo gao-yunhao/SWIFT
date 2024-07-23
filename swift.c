@@ -1088,7 +1088,7 @@ int main(int argc, char *argv[]) {
           "model!");
 #endif
     }
-
+//各种模块（比如流体力学模拟）的性质初始化。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。
     /* Initialise the hydro properties */
     if (with_hydro)
       hydro_props_init(&hydro_properties, &prog_const, &us, params);
