@@ -95,7 +95,7 @@ void units_init_from_params(struct unit_system* us, struct swift_params* params,
                             const char* category) {
 
   char buffer[200];
-  sprintf(buffer, "%s:UnitMass_in_cgs", category);
+  sprintf(buffer, "%s:UnitMass_in_cgs", category); //把第二位格式化输入到buffer中
   us->UnitMass_in_cgs = parser_get_param_double(params, buffer);
   sprintf(buffer, "%s:UnitLength_in_cgs", category);
   us->UnitLength_in_cgs = parser_get_param_double(params, buffer);
