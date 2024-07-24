@@ -1379,7 +1379,7 @@ int main(int argc, char *argv[]) {
     if (with_line_of_sight) los_init(s.dim, &los_properties, params);
 
     /* Initialise the lightcone properties */
-    bzero(&lightcone_array_properties, sizeof(struct lightcone_array_props));
+    bzero(&lightcone_array_properties, sizeof(struct lightcone_array_props));//把前n位设置成0
 #ifdef WITH_LIGHTCONE
     if (with_lightcone)
       lightcone_array_init(&lightcone_array_properties, &s, &cosmo, params, &us,
