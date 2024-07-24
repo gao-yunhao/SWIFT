@@ -1225,7 +1225,7 @@ int main(int argc, char *argv[]) {
     if (myrank == 0 && cleanup_sqrt_a)
       message("Cleaning up a-factors from velocity (a=%f)", cosmo.a);
     fflush(stdout);
-
+//初始化各种粒子。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。
     /* Get ready to read particles of all kinds */
     size_t Ngas = 0, Ngpart = 0, Ngpart_background = 0, Nnupart = 0;
     size_t Nspart = 0, Nbpart = 0, Nsink = 0;
