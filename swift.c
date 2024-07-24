@@ -1439,7 +1439,7 @@ int main(int argc, char *argv[]) {
     Nbaryons = s.nr_parts + s.nr_sparts + s.nr_bparts + s.nr_sinks;
     Nnupart = s.nr_nuparts;
 #if defined(WITH_MPI)
-    N_long[swift_type_gas] = s.nr_parts;
+    N_long[swift_type_gas] = s.nr_parts; //s: struct space s 114行.............................................
     N_long[swift_type_dark_matter] =
         with_gravity ? s.nr_gparts - Ngpart_background - Nbaryons - Nnupart : 0;
     N_long[swift_type_count] = s.nr_gparts;
