@@ -1326,7 +1326,7 @@ int main(int argc, char *argv[]) {
                   MPI_SUM, MPI_COMM_WORLD);
 #else
     N_total[swift_type_gas] = Ngas;
-    N_total[swift_type_dark_matter_background] = Ngpart_background;
+    N_total[swift_type_dark_matter_background] = Ngpart_background;//为什么要区分background和非background?
     N_total[swift_type_sink] = Nsink;
     N_total[swift_type_stars] = Nspart;
     N_total[swift_type_black_hole] = Nbpart;
