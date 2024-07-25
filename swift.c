@@ -1661,7 +1661,7 @@ int main(int argc, char *argv[]) {
       0)
     error("Failed to generate restart filename");
 
-  /* dump the parameters as used. */
+  /* dump the parameters as used. *///转存参数信息，并在restart的时候比较和之前参数是否一致。。。。。。
   if (myrank == 0) {
 
     const char *usedname = "used_parameters.yml";
