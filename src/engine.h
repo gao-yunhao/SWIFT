@@ -194,7 +194,7 @@ struct engine {
   integertime_t ti_earliest_undrifted;
 
   /* The highest active bin at this time */
-  timebin_t max_active_bin;
+  timebin_t max_active_bin;  // timebin_t: int8_t
 
   /* The lowest active bin at this time */
   timebin_t min_active_bin;
