@@ -166,7 +166,7 @@ void timers_reset_all(void) {
 void timers_print(int step) {
   fprintf(timers_file, "%d\t", step);
   for (int k = 0; k < timer_count; k++)
-    fprintf(timers_file, "%25.3f ", clocks_from_ticks(timers[k]));
+    fprintf(timers_file, "%25.3f ", clocks_from_ticks(timers[k])); // %：格式说明符的起始符号，25：最小字段宽度，小于这个长度会自动填满，.3：保留三位小数
   fprintf(timers_file, "\n");
   fflush(timers_file);
 }
