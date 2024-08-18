@@ -145,7 +145,7 @@ enum {
   timer_do_sync,
   timer_neutrino_weighting,
   timer_count,
-};
+};  //////////////////////////创建一组整型常量////////////////////////////////////////////
 
 /* The timers. */
 extern ticks timers[timer_count];
