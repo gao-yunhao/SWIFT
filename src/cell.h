@@ -381,7 +381,7 @@ struct cell {
   volatile uint32_t flags;
 
   /*! Hydro variables */
-  struct cell_hydro hydro;
+  struct cell_hydro hydro; //  一大堆link链表和task指针的结构体；
 
   /*! Grav variables */
   struct cell_grav grav;
@@ -404,7 +404,7 @@ struct cell {
 
     union {
       /* Single list of all send tasks associated with this cell. */
-      struct link *send;
+      struct link *send; //  task指针的链表，这个指向头节点；
 
       /* Single list of all recv tasks associated with this cell. */
       struct link *recv;
