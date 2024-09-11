@@ -342,4 +342,4 @@ void queue_dump(int nodeID, int index, FILE *file, struct queue *q) {
 
   /* Release the task lock. */
   if (lock_unlock(qlock) != 0) error("Unlocking the qlock failed.\n");
-}
+} //  输出任务名称到某个文件中？
