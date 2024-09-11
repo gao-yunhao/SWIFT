@@ -69,7 +69,7 @@ struct queue {
   struct task *tasks;
 
   /* The task indices and weights. */
-  struct queue_entry *entries;
+  struct queue_entry *entries; //  当前task的id和权重；
 
   /* DEQ for incoming tasks. */
   int *tid_incoming; //  incoming的task的id组成的双向队列？
