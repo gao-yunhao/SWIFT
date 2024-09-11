@@ -100,7 +100,7 @@ int queue_sift_down(struct queue *q, int ind) {
   }
 
   return ind;
-}
+} //  上面那个函数的逆过程
 
 /**
  * @brief Enqueue all tasks in the incoming DEQ.
