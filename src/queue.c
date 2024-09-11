@@ -64,7 +64,7 @@ int queue_bubble_up(struct queue *q, int ind) {
   }
 
   return ind;
-}
+} //  对权重进行堆排序？返回值是插入堆结束后元素的位置；
 
 /**
  * @brief Push the task at the given index down the heap until both its children
