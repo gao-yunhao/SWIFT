@@ -66,12 +66,12 @@ struct queue {
   int size, count;
 
   /* The actual tasks to which the indices refer. */
-  struct task *tasks;
+  struct task *tasks; //  task指针，应该是需要动态分配内存；
 
   /* The task indices and weights. */
-  struct queue_entry *entries; //  当前task的id和权重；
+  struct queue_entry *entries; //  每一个task的id和权重；
 
-  /* DEQ for incoming tasks. */
+  /* DEQ for incoming tasks. */ //DEQ: 应该是双向队列
   int *tid_incoming; //  incoming的task的id组成的双向队列？
   volatile unsigned int first_incoming, last_incoming, count_incoming;
 
