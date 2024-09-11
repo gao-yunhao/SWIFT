@@ -86,7 +86,7 @@ struct scheduler {
   int active_count;
 
   /* The task unlocks. */
-  struct task **volatile unlocks;
+  struct task **volatile unlocks; //  volatile关键字：告诉编译器这个变量不是稳定的，每一次使用它都必须重新从内存中读取当前数据；
   int *volatile unlock_ind;
   volatile int nr_unlocks, size_unlocks, completed_unlock_writes;
 
