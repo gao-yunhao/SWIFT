@@ -66,7 +66,7 @@ struct queue {
   int size, count; //  size是队列容许的总长度，count是当前队列中元素的个数；
 
   /* The actual tasks to which the indices refer. */
-  struct task *tasks; //  task指针，应该是需要动态分配内存；也许是指向所有需要用到的task?
+  struct task *tasks; //  task指针，应该是需要动态分配内存；
 
   /* The task indices and weights. */
   struct queue_entry *entries; //  每一个task的id和权重；
