@@ -119,8 +119,8 @@ void queue_get_incoming(struct queue *q) {
     if (q->tid_incoming[ind] < 0) break;
 
     /* Get the next offset off the DEQ. */
-    const int offset = atomic_swap(&q->tid_incoming[ind], -1);
-    atomic_inc(&q->first_incoming);
+    const int offset = atomic_swap(&q->tid_incoming[ind], -1); //  将第二个参数赋值给第一个参数，并输出第一个参数原来的值；
+    atomic_inc(&q->first_incoming); //  将参数加一（原子操作）
 
     /* Does the queue need to be grown? */
     if (q->count == q->size) {
@@ -138,7 +138,7 @@ void queue_get_incoming(struct queue *q) {
     entries[q->count].tid = offset;
     entries[q->count].weight = q->tasks[offset].weight;
     q->count += 1;
-    atomic_dec(&q->count_incoming);
+    atomic_dec(&q->count_incoming); //  将参数减一（原子操作）
 
     /* Re-heap by bubbling up the new (last) element. */
     queue_bubble_up(q, q->count - 1);
@@ -150,7 +150,7 @@ void queue_get_incoming(struct queue *q) {
         error("Queue heap is disordered.");
 #endif
   }
-}
+} //  将incoming的任务id全部入队（实际上是放入堆中）
 
 /**
  * @brief Insert a used tasks into the given queue.
@@ -216,7 +216,7 @@ void queue_init(struct queue *q, struct task *tasks) {
   q->first_incoming = 0;
   q->last_incoming = 0;
   q->count_incoming = 0;
-}
+} //  使用这个函数时的语句：for (int k = 0; k < nr_queues; k++) queue_init(&s->queues[k], NULL); 也就是说初始化时存储的task是空指针；
 
 /**
  * @brief Get a task free of dependencies and conflicts.
