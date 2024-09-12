@@ -63,7 +63,7 @@ struct queue {
   swift_lock_type lock;
 
   /* Size, count and next element. */
-  int size, count;
+  int size, count; //  size是队列容许的总长度，count是当前队列中元素的个数；
 
   /* The actual tasks to which the indices refer. */
   struct task *tasks; //  task指针，应该是需要动态分配内存；
