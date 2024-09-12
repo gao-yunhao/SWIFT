@@ -72,7 +72,7 @@ struct queue {
   struct queue_entry *entries; //  每一个task的id和权重；
 
   /* DEQ for incoming tasks. */ //DEQ: 应该是双向队列
-  int *tid_incoming; //  incoming的task的id组成的双向队列？
+  int *tid_incoming; //  incoming的task的id组成的双向队列？id是tasks数组中这个task所处的位置；
   volatile unsigned int first_incoming, last_incoming, count_incoming;
 
 } __attribute__((aligned(queue_struct_align)));
