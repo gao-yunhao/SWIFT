@@ -150,7 +150,7 @@ void queue_get_incoming(struct queue *q) {
         error("Queue heap is disordered.");
 #endif
   }
-} //  将incoming的任务id全部入队（实际上是放入堆中）
+} //  将incoming的任务id和权重全部入队（实际上是放入堆中）
 
 /**
  * @brief Insert a used tasks into the given queue.
@@ -160,20 +160,20 @@ void queue_get_incoming(struct queue *q) {
  */
 void queue_insert(struct queue *q, struct task *t) {
   /* Get an index in the DEQ. */
-  const int ind = atomic_inc(&q->last_incoming) % queue_incoming_size;
+  const int ind = atomic_inc(&q->last_incoming) % queue_incoming_size; //  如果incoming队列没有装满，就直接从last_incoming的下一个位置开始插入；
 
   /* Spin until the new offset can be stored. */
-  while (atomic_cas(&q->tid_incoming[ind], -1, t - q->tasks) != -1) {
-
+  while (atomic_cas(&q->tid_incoming[ind], -1, t - q->tasks) != -1) { //  如果前两个参数相等，就把第三个参数的值赋给第一个参数；始终返回第一个参数的旧值；
+                                                                      //  t - q->tasks：指针相减，返回这两个指针之间元素个数；
     /* Try to get the queue lock, non-blocking, ensures that at
        least somebody is working on this queue. */
-    if (lock_trylock(&q->lock) == 0) {
+    if (lock_trylock(&q->lock) == 0) { //  等待其他线程处理完他们的任务再执行下面的代码，等待过程会继续运行这个循环；
 
       /* Clean up the incoming DEQ. */
-      queue_get_incoming(q);
+      queue_get_incoming(q);           //  等待结束，清空incoming队列，清空后从此前的last_incoming的下一个位置开始插入；
 
       /* Release the queue lock. */
-      if (lock_unlock(&q->lock) != 0) {
+      if (lock_unlock(&q->lock) != 0) {//  我猜是释放锁，让其他（可能存在的）被锁住的线程开始运行；
         error("Unlocking the qlock failed.\n");
       }
     }
@@ -181,7 +181,7 @@ void queue_insert(struct queue *q, struct task *t) {
 
   /* Increase the incoming count. */
   atomic_inc(&q->count_incoming);
-}
+} //  将一个任务插入到incoming的缓冲区中；
 
 /**
  * @brief Initialize the given queue.
