@@ -225,7 +225,7 @@ void queue_init(struct queue *q, struct task *tasks) {
  * @param prev The previous #task extracted from this #queue.
  * @param blocking Block until access to the queue is granted.
  */
-struct task *queue_gettask(struct queue *q, const struct task *prev,
+struct task *queue_gettask(struct queue *q, const struct task *prev, //  prev参数似乎没有用到？
                            int blocking) {
 
   swift_lock_type *qlock = &q->lock;
@@ -235,7 +235,7 @@ struct task *queue_gettask(struct queue *q, const struct task *prev,
   if (blocking) {
     if (lock_lock(qlock) != 0) error("Locking the qlock failed.\n");
   } else {
-    if (lock_trylock(qlock) != 0) return NULL;
+    if (lock_trylock(qlock) != 0) return NULL; //  如果当前队列被其他线程占用，那么直接查找任务失败？
   }
 
   /* Fill any tasks from the incoming DEQ. */
@@ -257,7 +257,7 @@ struct task *queue_gettask(struct queue *q, const struct task *prev,
   for (ind = 0; ind < old_qcount; ind++) {
 
     /* Try to lock the next task. */
-    if (task_lock(&qtasks[entries[ind].tid])) break;
+    if (task_lock(&qtasks[entries[ind].tid])) break; //  判断当前cell是否具备执行各种task的条件；
 
     /* Should we de-prioritize this task? */
 
@@ -273,9 +273,8 @@ struct task *queue_gettask(struct queue *q, const struct task *prev,
       /* Send it down the binary heap. */
       if (queue_sift_down(q, ind) != ind) ind -= 1;
     }
-  }
-
-  /* Did we get a task? */
+  } //  我怀疑这个循环有可能会变成死循环，比如初始的时候task的权重，1，0.8，此后交替×0.5并且ind-=1，那么如果260行一直没有break，那么ind就会一直等于1，这个循环就会一直执行；
+  /* Did we get a task? */ //  我猜设计代码的时候可能认为当sift down几次之后队列元素的位置就不会发生变化了，这样ind就不会减一，循环就可以正常运行；
   if (ind < old_qcount) {
 
     /* Another one bites the dust. */
@@ -285,7 +284,7 @@ struct task *queue_gettask(struct queue *q, const struct task *prev,
     res = &qtasks[entries[ind].tid];
 
     /* Swap this task with the last task and re-heap. */
-    if (ind < qcount) {
+    if (ind < qcount) { //  将选出来的task出队；
       entries[ind] = entries[qcount];
       ind = queue_bubble_up(q, ind);
       ind = queue_sift_down(q, ind);
