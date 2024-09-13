@@ -167,7 +167,7 @@ void queue_insert(struct queue *q, struct task *t) {
                                                                       //  t - q->tasks：指针相减，返回这两个指针之间元素个数；
     /* Try to get the queue lock, non-blocking, ensures that at
        least somebody is working on this queue. */
-    if (lock_trylock(&q->lock) == 0) { //  等待其他线程处理完他们的任务再执行下面的代码，等待过程会继续运行这个循环；
+    if (lock_trylock(&q->lock) == 0) { //  等待其他线程处理完他们（在这个队列上）的任务再执行下面的代码，等待过程会继续运行这个循环；
 
       /* Clean up the incoming DEQ. */
       queue_get_incoming(q);           //  等待结束，清空incoming队列，清空后从此前的last_incoming的下一个位置开始插入；
@@ -306,7 +306,7 @@ struct task *queue_gettask(struct queue *q, const struct task *prev,
 
   /* Take the money and run. */
   return res;
-}
+} //  从这个队列中按优先级取出一个任务；
 
 void queue_clean(struct queue *q) {
 
