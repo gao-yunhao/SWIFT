@@ -752,7 +752,7 @@ int task_lock(struct task *t) {
     case task_type_kick2:
     case task_type_csds:
     case task_type_timestep:
-      if (ci->hydro.hold || ci->grav.phold) return 0;
+      if (ci->hydro.hold || ci->grav.phold) return 0; //  确保当前cell中的数据和相应gpart的数据没有被这个cell的subcell使用；
       if (cell_locktree(ci) != 0) return 0;
       if (cell_glocktree(ci) != 0) {
         cell_unlocktree(ci);
