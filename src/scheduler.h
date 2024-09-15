@@ -165,7 +165,7 @@ __attribute__((always_inline)) INLINE static void scheduler_activate(
   else
     t->activated_by_marktask = 1;
 #endif
-}
+} //  把某一个任务的id放在激活队列里；
 
 /**
  * @brief Search a given linked list of task for a given subtype and activate
@@ -183,7 +183,7 @@ scheduler_activate_all_subtype(struct scheduler *s, struct link *link,
   for (struct link *l = link; l != NULL; l = l->next) {
     if (l->t->subtype == subtype) scheduler_activate(s, l->t);
   }
-}
+} //  把某一个链表中所有任务全部激活；
 
 /**
  * @brief Search and add an MPI send task to the list of active tasks.
