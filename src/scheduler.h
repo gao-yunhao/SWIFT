@@ -183,7 +183,7 @@ scheduler_activate_all_subtype(struct scheduler *s, struct link *link,
   for (struct link *l = link; l != NULL; l = l->next) {
     if (l->t->subtype == subtype) scheduler_activate(s, l->t);
   }
-} //  把某一个链表中所有任务全部激活；
+} //  把某一个链表中某种subtype的所有任务全部激活；
 
 /**
  * @brief Search and add an MPI send task to the list of active tasks.
@@ -201,7 +201,7 @@ scheduler_activate_send(struct scheduler *s, struct link *link,
                         const enum task_subtypes subtype, const int nodeID) {
   struct link *l = NULL;
   for (l = link;
-       l != NULL && !(l->t->cj->nodeID == nodeID && l->t->subtype == subtype);
+       l != NULL && !(l->t->cj->nodeID == nodeID && l->t->subtype == subtype); //  这个任务连接的cell（cj）是要MPI send的cell，并且这个任务的subtype和函数要求的一致
        l = l->next)
     ;
   if (l == NULL) {
@@ -232,7 +232,7 @@ scheduler_activate_recv(struct scheduler *s, struct link *link,
   }
   scheduler_activate(s, l->t);
   return l;
-}
+} //  和上一个函数类似；
 
 /**
  * @brief Search and add an MPI pack task to the list of active tasks.
@@ -258,7 +258,7 @@ scheduler_activate_pack(struct scheduler *s, struct link *link,
   }
   scheduler_activate(s, l->t);
   return l;
-}
+} //  和上面的函数类似；
 
 /**
  * @brief Search and add an MPI unpack task to the list of active tasks.
@@ -281,7 +281,7 @@ scheduler_activate_unpack(struct scheduler *s, struct link *link,
   }
   scheduler_activate(s, l->t);
   return l;
-}
+} //  和上面的函数类似；
 
 /* Function prototypes. */
 void scheduler_clear_active(struct scheduler *s);
