@@ -2909,7 +2909,7 @@ struct task *scheduler_gettask(struct scheduler *s, int qid,
   if (qid >= nr_queues || qid < 0) error("Bad queue ID.");
 
   /* Loop as long as there are tasks... */
-  while (s->waiting > 0 && res == NULL) {
+  while (s->waiting > 0 && res == NULL) { //  s->waiting：现在还处在等待状态下的任务数；
     /* Try more than once before sleeping. */
     for (int tries = 0; res == NULL && s->waiting && tries < scheduler_maxtries;
          tries++) {
