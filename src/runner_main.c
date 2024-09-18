@@ -157,7 +157,7 @@ void *runner_main(void *data) {
 
         /* Get the task. */
         TIMER_TIC
-        t = scheduler_gettask(sched, r->qid, prev);
+        t = scheduler_gettask(sched, r->qid, prev); //在还有waiting task的情况下会一直等待，直到得到一个任务为止；
         TIMER_TOC(timer_gettask);
 
         /* Did I get anything? */
