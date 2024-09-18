@@ -2919,7 +2919,7 @@ struct task *scheduler_gettask(struct scheduler *s, int qid,
         res = queue_gettask(&s->queues[qid], prev, 0);
         TIMER_TOC(timer_qget);
         if (res != NULL) break;
-      }
+      } //  尝试从选定的队列获取任务；
 
       /* If unsuccessful, try stealing from the other queues. */
       if (s->flags & scheduler_flag_steal) {
@@ -2940,7 +2940,7 @@ struct task *scheduler_gettask(struct scheduler *s, int qid,
           }
         }
         if (res != NULL) break;
-      }
+      } //  尝试从所有队列中获取任务，这里队列编号的选择是通过某种随机数的方式选取的，没看懂？
     }
 
 /* If we failed, take a short nap. */
@@ -2950,19 +2950,19 @@ struct task *scheduler_gettask(struct scheduler *s, int qid,
     if (res == NULL)
 #endif
     {
-      pthread_mutex_lock(&s->sleep_mutex);
-      res = queue_gettask(&s->queues[qid], prev, 1);
+      pthread_mutex_lock(&s->sleep_mutex); //  当前线程获取互斥锁，其他线程此后如果也要使用互斥锁，会先挂起等待；
+      res = queue_gettask(&s->queues[qid], prev, 1); //  最后再尝试获取一次task
       if (res == NULL && s->waiting > 0) {
-        pthread_cond_wait(&s->sleep_cond, &s->sleep_mutex);
+        pthread_cond_wait(&s->sleep_cond, &s->sleep_mutex); //  释放持有的互斥锁 sleep_mutex，并等待条件变量 s->sleep_cond 触发。等到有任务可用时，线程会被唤醒并重新获取互斥锁
       }
-      pthread_mutex_unlock(&s->sleep_mutex);
+      pthread_mutex_unlock(&s->sleep_mutex); //  释放互斥锁
     }
 
-    scheduler_check_deadlock(s);
+    scheduler_check_deadlock(s); //  检查，防止所有线程都在等待任务而都没有获得任务（死锁）
   }
 
   if (res != NULL) {
-    scheduler_mark_last_fetch(s);
+    scheduler_mark_last_fetch(s); //  swift_debug相关，暂时不看
     /* Start the timer on this task, if we got one. */
     res->tic = getticks();
 #ifdef SWIFT_DEBUG_TASKS
