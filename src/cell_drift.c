@@ -1205,12 +1205,12 @@ void cell_drift_multipole(struct cell *c, const struct engine *e) {
   /* Drift from the last time the cell was drifted to the current time */
   double dt_drift;
   if (e->policy & engine_policy_cosmology)
-    dt_drift =
-        cosmology_get_drift_factor(e->cosmology, ti_old_multipole, ti_current);
+    dt_drift =                                                                    //SWIFT中记录模拟时间是用长整型变量记录“时间刻”，
+        cosmology_get_drift_factor(e->cosmology, ti_old_multipole, ti_current);   //这个函数相当于是把整型的时间刻转换为模拟中使用的物理时间；
   else
     dt_drift = (ti_current - ti_old_multipole) * e->time_base;
-
-  if (ti_current > ti_old_multipole) gravity_drift(c->grav.multipole, dt_drift);
+                                                    //multipole是gravity_tensor类型的变量包含势能多极矩、质量多极矩、质心位置、质心到gpart粒子的最大距离等参数；
+  if (ti_current > ti_old_multipole) gravity_drift(c->grav.multipole, dt_drift);  //速度*时间间隔计算CoM(质心位置)的变化，并计算最大改变值
 
   /* Update the time of the last drift */
   c->grav.ti_old_multipole = ti_current;
