@@ -412,7 +412,7 @@ void cell_drift_part(struct cell *c, const struct engine *e, int force,
  * @param force Drift the particles irrespective of the #cell flags.
  */
 void cell_drift_gpart(struct cell *c, const struct engine *e, int force,
-                      struct replication_list *replication_list_in) {
+                      struct replication_list *replication_list_in) {    //replication_list是和lightcone有关的结构体，暂时不管；
   const int periodic = e->s->periodic;
   const double dim[3] = {e->s->dim[0], e->s->dim[1], e->s->dim[2]};
   const int with_cosmology = (e->policy & engine_policy_cosmology);
