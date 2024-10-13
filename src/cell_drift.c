@@ -458,7 +458,7 @@ void cell_drift_gpart(struct cell *c, const struct engine *e, int force,
 #endif
 
   /* Are we not in a leaf ? */
-  if (c->split && (force || cell_get_flag(c, cell_flag_do_grav_sub_drift))) {
+  if (c->split && (force || cell_get_flag(c, cell_flag_do_grav_sub_drift))) { //  split表示该cell是否是叶子节点
 
     /* Loop over the progeny and collect their data. */
     for (int k = 0; k < 8; k++) {
