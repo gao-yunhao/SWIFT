@@ -334,7 +334,7 @@ INLINE static void gravity_cache_populate_no_mpole(
 
   /* Fill the input caches */
   for (int i = 0; i < gcount; ++i) {
-    x[i] = (float)(gparts[i].x[0] - shift[0]);
+    x[i] = (float)(gparts[i].x[0] - shift[0]); //  shift是当前cell的中心坐标；
     y[i] = (float)(gparts[i].x[1] - shift[1]);
     z[i] = (float)(gparts[i].x[2] - shift[2]);
     epsilon[i] = gravity_get_softening(&gparts[i], grav_props);
@@ -345,7 +345,7 @@ INLINE static void gravity_cache_populate_no_mpole(
     }
 #endif
 
-    /* Make a dummy particle out of the inhibted ones */
+    /* Make a dummy particle out of the inhibted ones */ //  如果是inhibited的粒子就把质量和是否激活选项全部赋值为0；
     if (gparts[i].time_bin == time_bin_inhibited) {
       m[i] = 0.f;
       active[i] = 0;
@@ -367,7 +367,7 @@ INLINE static void gravity_cache_populate_no_mpole(
   const float eps_padded = epsilon[0];
 
   /* Pad the caches */
-  for (int i = gcount; i < gcount_padded; ++i) {
+  for (int i = gcount; i < gcount_padded; ++i) { //  把仅用于向量化的结构填补需要，多出来的那部分的粒子赋值；
     x[i] = pos_padded[0];
     y[i] = pos_padded[1];
     z[i] = pos_padded[2];
@@ -377,7 +377,7 @@ INLINE static void gravity_cache_populate_no_mpole(
   }
 
   /* Zero the output as well */
-  gravity_cache_zero_output(c, gcount_padded);
+  gravity_cache_zero_output(c, gcount_padded); //  把加速度和势能赋值为0；
 }
 
 /**
