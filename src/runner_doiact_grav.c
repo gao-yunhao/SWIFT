@@ -1831,7 +1831,7 @@ void runner_doself_grav_pp(struct runner *r, struct cell *c) {
   } else {
 
     /* Get the maximal distance between any two particles */
-    const double max_r = 2. * c->grav.multipole->r_max;
+    const double max_r = 2. * c->grav.multipole->r_max; //  r_max：cell中gpart粒子到质心的最大距离的上限估计；
 
     /* Do we need to use the truncated interactions ? */
     if (max_r > min_trunc) {
