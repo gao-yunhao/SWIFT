@@ -106,7 +106,7 @@ __attribute__((nonnull)) INLINE static void gravity_drift(
   const float x_diff = max_delta_vel * dt;
 
   /* Conservative change in maximal radius containing all gpart */
-  m->r_max += x_diff;
+  m->r_max += x_diff; //  r_max会在每次计算引力调用gravity_P2M函数时重新计算，这里只是对迭代一次后的结果在重新精确计算之前进行估算
 }
 
 /**
