@@ -1852,7 +1852,7 @@ void runner_doself_grav_pp(struct runner *r, struct cell *c) {
 #ifndef SWIFT_TASKS_WITHOUT_ATOMICS
   lock_lock(&c->grav.plock);
 #endif
-  gravity_cache_write_back(ci_cache, c->grav.parts, gcount);
+  gravity_cache_write_back(ci_cache, c->grav.parts, gcount); //  把cache里面计算出来的结果重新赋值回相应的gpart粒子中；
 #ifndef SWIFT_TASKS_WITHOUT_ATOMICS
   if (lock_unlock(&c->grav.plock) != 0) error("Error unlocking cell");
 #endif
