@@ -94,7 +94,7 @@ __attribute__((nonnull)) INLINE static void gravity_drift(
 
   /* Maximal distance covered by any particle */
   float dv[3];
-  dv[0] = max(m->m_pole.max_delta_vel[0] - m->m_pole.vel[0],
+  dv[0] = max(m->m_pole.max_delta_vel[0] - m->m_pole.vel[0], //  max_delta_vel是当前cell中正向运动速度最快的粒子，min是负向运动速度最快的粒子；
               m->m_pole.vel[0] - m->m_pole.min_delta_vel[0]);
   dv[1] = max(m->m_pole.max_delta_vel[1] - m->m_pole.vel[1],
               m->m_pole.vel[1] - m->m_pole.min_delta_vel[1]);
