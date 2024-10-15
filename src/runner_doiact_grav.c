@@ -1787,7 +1787,7 @@ void runner_doself_grav_pp(struct runner *r, struct cell *c) {
   const struct engine *e = r->e;
   const int periodic = e->mesh->periodic;
   const float r_s_inv = e->mesh->r_s_inv; //  Inverse of the scale over which we smooth the forces
-  const double min_trunc = e->mesh->r_cut_min;
+  const double min_trunc = e->mesh->r_cut_min; //  Distance below which tree forces are Newtonian
 
   TIMER_TIC;
 
