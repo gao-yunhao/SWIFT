@@ -321,9 +321,9 @@ INLINE static void gravity_cache_populate_no_mpole(
 #endif
 
   /* Do we need to grow the cache? */
-  if (c->count < gcount_padded) gravity_cache_init(c, gcount_padded + VEC_SIZE);
+  if (c->count < gcount_padded) gravity_cache_init(c, gcount_padded + VEC_SIZE); //  给缓冲区分配内存空间；
 
-  /* Make the compiler understand we are in happy vectorization land */
+  /* Make the compiler understand we are in happy vectorization land */ //  和向量化有关，暂时没有搞清楚是什么意思；
   swift_declare_aligned_ptr(float, x, c->x, SWIFT_CACHE_ALIGNMENT);
   swift_declare_aligned_ptr(float, y, c->y, SWIFT_CACHE_ALIGNMENT);
   swift_declare_aligned_ptr(float, z, c->z, SWIFT_CACHE_ALIGNMENT);
