@@ -1786,7 +1786,7 @@ void runner_doself_grav_pp(struct runner *r, struct cell *c) {
   /* Recover some useful constants */
   const struct engine *e = r->e;
   const int periodic = e->mesh->periodic;
-  const float r_s_inv = e->mesh->r_s_inv;
+  const float r_s_inv = e->mesh->r_s_inv; //  Inverse of the scale over which we smooth the forces
   const double min_trunc = e->mesh->r_cut_min;
 
   TIMER_TIC;
