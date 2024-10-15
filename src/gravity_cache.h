@@ -144,7 +144,7 @@ static INLINE void gravity_cache_init(struct gravity_cache *c,
 
   if (e != 0) error("Couldn't allocate gravity cache, size: %d", padded_count);
 
-  c->count = padded_count;
+  c->count = padded_count; //  gravity_cache占用的内存大小（还没看是以什么为单位）
 }
 
 /**
