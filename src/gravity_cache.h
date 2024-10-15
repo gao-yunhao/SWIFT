@@ -508,7 +508,7 @@ INLINE static void gravity_cache_write_back(const struct gravity_cache *c,
       gparts[i].a_grav[0] += a_x[i];
       gparts[i].a_grav[1] += a_y[i];
       gparts[i].a_grav[2] += a_z[i];
-      gravity_add_comoving_potential(&gparts[i], pot[i]);
+      gravity_add_comoving_potential(&gparts[i], pot[i]); //  只有一行代码 gp->potential += pot
     }
   }
 }
