@@ -1540,7 +1540,7 @@ static INLINE void runner_doself_grav_pp_full(
       const float r2 = dx * dx + dy * dy + dz * dz;
 
       /* Pick the maximal softening length of i and j */
-      const float h = max(h_i, h_j);
+      const float h = max(h_i, h_j); //  以较大的那个softening length为计算基准；
       const float h2 = h * h;
       const float h_inv = 1.f / h;
       const float h_inv_3 = h_inv * h_inv * h_inv;
@@ -1581,11 +1581,11 @@ static INLINE void runner_doself_grav_pp_full(
 #endif
 
       /* Interact! */
-      float f_ij, pot_ij;
-      runner_iact_grav_pp_full(r2, h2, h_inv, h_inv_3, mass_j, &f_ij, &pot_ij);
+      float f_ij, pot_ij;                                                       //  开始计算相互引力和势；
+      runner_iact_grav_pp_full(r2, h2, h_inv, h_inv_3, mass_j, &f_ij, &pot_ij); //  如果两个粒子距离超过h，则按牛顿引力算，否则是用一个五次多项式拟合；
 
       /* Store it back */
-      a_x += f_ij * dx;
+      a_x += f_ij * dx; //  f_ij相当于是牛顿力学中的GM/r^3;
       a_y += f_ij * dy;
       a_z += f_ij * dz;
       pot += pot_ij;
