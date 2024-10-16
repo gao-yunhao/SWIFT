@@ -1520,7 +1520,7 @@ static INLINE void runner_doself_grav_pp_full(
     swift_assume_size(gcount_padded, VEC_SIZE);
 
     /* Loop over every other particle in the cell. */
-    for (int pjd = 0; pjd < gcount_padded; pjd++) {
+    for (int pjd = 0; pjd < gcount_padded; pjd++) { //  padded的粒子的质量都是0，不会对计算结果有影响；
 
       /* No self interaction */
       if (pid == pjd) continue;
