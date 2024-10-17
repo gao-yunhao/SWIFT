@@ -1787,7 +1787,7 @@ void runner_doself_grav_pp(struct runner *r, struct cell *c) {
   const struct engine *e = r->e;
   const int periodic = e->mesh->periodic;
   const float r_s_inv = e->mesh->r_s_inv; //  Inverse of the scale over which we smooth the forces
-  const double min_trunc = e->mesh->r_cut_min; //  Distance below which tree forces are Newtonian //  一般默认设置成0，除非参数文件里有Gravity:r_cut_min_ratio选项；
+  const double min_trunc = e->mesh->r_cut_min; //  Distance below which tree forces are Newtonian //  一般默认设置成0，除非参数文件里有Gravity:r_cut_min选项，得到相较于r_s的比例；
 
   TIMER_TIC;
 
