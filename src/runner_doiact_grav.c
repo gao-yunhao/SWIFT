@@ -2252,7 +2252,7 @@ void runner_dopair_recursive_grav(struct runner *r, struct cell *ci,
   const double r_lr_check = sqrt(r2) - (multi_i->r_max + multi_j->r_max);
 
   /* Are we beyond the distance where the truncated forces are 0? */
-  if (periodic && r_lr_check > max_distance) {
+  if (periodic && r_lr_check > max_distance) { //  如果这两个cell中离得最近的粒子的距离都大于树算法的截断距离（大于这个距离树算法计算的引力为0），那么不用计算，直接退出；
 
 #ifdef SWIFT_DEBUG_CHECKS
     if (cell_is_active_gravity(ci, e))
