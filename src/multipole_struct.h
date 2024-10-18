@@ -202,7 +202,7 @@ struct gravity_tensors {
       struct grav_tensor pot; //  存的是F张量
 
       /*! Multipole mass */
-      struct multipole m_pole;
+      struct multipole m_pole; //  存的是M张量
 
       /*! Centre of mass of the matter dsitribution */
       double CoM[3];
