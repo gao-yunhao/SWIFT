@@ -199,7 +199,7 @@ struct gravity_tensors {
     struct {
 
       /*! Field tensor for the potential */
-      struct grav_tensor pot;
+      struct grav_tensor pot; //  存的是F张量
 
       /*! Multipole mass */
       struct multipole m_pole;
