@@ -2202,7 +2202,7 @@ void runner_dopair_recursive_grav(struct runner *r, struct cell *ci,
   const int nodeID = e->nodeID;
   const int periodic = e->mesh->periodic;
   const double dim[3] = {e->mesh->dim[0], e->mesh->dim[1], e->mesh->dim[2]};
-  const double max_distance = e->mesh->r_cut_max;
+  const double max_distance = e->mesh->r_cut_max; //  Distance beyond which tree forces are neglected
 
   /* Anything to do here? */
   if (!((cell_is_active_gravity(ci, e) && ci->nodeID == nodeID) ||
