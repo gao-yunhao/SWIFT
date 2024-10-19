@@ -1444,7 +1444,7 @@ void runner_dopair_grav_pp_no_cache(struct runner *r, struct cell *restrict ci,
 
   /* Record activity status */
   const int ci_active =
-      cell_is_active_gravity(ci, e) && (ci->nodeID == e->nodeID);
+      cell_is_active_gravity(ci, e) && (ci->nodeID == e->nodeID); //  只有当当前引擎包含ci时才执行这个函数
 
   /* Anything to do here? */
   if (!ci_active) return;
