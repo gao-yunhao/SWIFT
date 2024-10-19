@@ -124,7 +124,7 @@ struct gravity_props {
   float rebuild_active_fraction;
 
   /*! Time integration dimensionless multiplier */
-  float eta;
+  float eta; //  计算自引力导致的迭代的时间步长时需要使用这个量，暂时没搞清楚物理含义；
 
   /* ------------- Properties of the mesh-based gravity ---------------- */
 
