@@ -306,13 +306,13 @@ __attribute__((nonnull, pure)) INLINE static int gravity_M2P_accept(
 #endif
 
   /* Compute the error estimator (without the 1/M_B term that cancels out) */
-  const float E_BA_term = 8.f * B->m_pole.power[p];
+  const float E_BA_term = 8.f * B->m_pole.power[p]; //  power的定义见SWIFT论文(47)式，应该是在 rebuild trees 的时候就计算好了；这里因为只算M2P，因此和\rho_A没有关系，因此(48)式不用求和，只用除R^p；
 
   /* Compute r^p = (r^2)^(p/2) */
   const float r_to_p = integer_powf(r2, (p / 2));
 
   float f_MAC_inv;
-  if (periodic && props->consider_truncation_in_MAC) {
+  if (periodic && props->consider_truncation_in_MAC) { //  SWIFT论文(49)式中除的R^2应该是按照牛顿引力计算的，如果要引力粒子磨光的话就需要修正，但是我没太看懂下面这个函数，这个修正可能是个近似计算？
     f_MAC_inv = gravity_f_MAC_inverse(max_softening, props->r_s_inv, r2);
   } else {
     f_MAC_inv = r2;
