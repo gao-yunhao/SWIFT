@@ -449,8 +449,8 @@ static INLINE void runner_dopair_grav_pp_truncated_no_cache(
       float f_x, f_y, f_z, pot_ij;
       runner_iact_grav_pm_truncated(dx_multi, dy_multi, dz_multi, r2_multi, h_i,
                                     h_inv_i, r_s_inv, &multi_j->m_pole, &f_x,
-                                    &f_y, &f_z, &pot_ij);
-
+                                    &f_y, &f_z, &pot_ij); //  先计算D张量（也就是引力势求导，注意这里离得近的粒子之间没有考虑周期BC的截断），然后把D张量和M张量按位相乘；
+                                                          //  力只能计算到4阶，这个函数里面5阶的部分只有对引力势的修正；
       /* Store it back */
       a_x += f_x;
       a_y += f_y;
