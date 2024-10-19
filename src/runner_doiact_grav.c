@@ -471,7 +471,7 @@ static INLINE void runner_dopair_grav_pp_truncated_no_cache(
       accumulate_add_f(&gparts_i[i].a_grav_m2p[2], f_z);
 #endif
 
-    } else {
+    } else { //  对每个粒子算截断的P2P
 
       /* Loop over source particles */
       for (int j = 0; j < gcount_j; ++j) {
