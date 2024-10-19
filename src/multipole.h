@@ -2276,7 +2276,7 @@ __attribute__((always_inline, nonnull)) INLINE static void gravity_M2P(
   /* Compute the derivatives of the potential */
   struct potential_derivatives_M2P d;
   potential_derivatives_compute_M2P(r_x, r_y, r_z, r2, r_inv, eps, periodic,
-                                    rs_inv, &d);
+                                    rs_inv, &d); //  计算D张量，如果距离小于softening length，那么就不考虑周期性边界条件的截断（SWIFT论文的51式截断确实只考虑了Newton引力势的情况）；
 
 #ifdef SWIFT_DEBUG_CHECKS
   if (l->F_000 != 0. || l->F_100 != 0. || l->F_010 != 0. || l->F_001 != 0.)
