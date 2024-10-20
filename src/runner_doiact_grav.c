@@ -2280,8 +2280,8 @@ void runner_dopair_recursive_grav(struct runner *r, struct cell *ci,
 
   if (ci->grav.count <= 1 || cj->grav.count <= 1) {
 
-    /* We have two cheap cells. Go P-P. */     //  首先检查ci是否由这个引擎e负责，然后递归到叶子节点上进行计算；
-    runner_dopair_grav_pp_no_cache(r, ci, cj);
+    /* We have two cheap cells. Go P-P. */     //  首先检查ci是否由这个引擎e负责，然后对ci递归到叶子节点上进行计算；
+    runner_dopair_grav_pp_no_cache(r, ci, cj); //  对ci叶子节点上的每一个粒子，如果cj中粒子数大于一个且满足M2P的MAC条件，那么使用多极矩计算，否则使用P2P精确求解；（算多极矩展开的时候如果两个粒子离得很近就不考虑周期截断）
     runner_dopair_grav_pp_no_cache(r, cj, ci);
 
     /* Can we use M-M interactions ? */
