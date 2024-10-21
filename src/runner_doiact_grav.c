@@ -1273,7 +1273,7 @@ void runner_dopair_grav_pp(struct runner *r, struct cell *ci, struct cell *cj,
   gravity_cache_populate(e->max_active_bin, allow_multipole_j, periodic, dim,
                          ci_cache, ci->grav.parts, gcount_i, gcount_padded_i,
                          shift_i, CoM_j, cj->grav.multipole, ci,
-                         e->gravity_properties); //  将ci中粒子的坐标转换为相对于shift的坐标（shift=0，所以没有影响），对ci的每一个粒子计算是否可以使用M2P，并把加速度和引力势赋值为0；
+                         e->gravity_properties); //  将ci中粒子的坐标转换为相对于shift的坐标（shift=0，所以没有影响），对ci的每一个粒子计算是否可以使用M2P，当前是否需要kick，并把加速度和引力势赋值为0；
   gravity_cache_populate(e->max_active_bin, allow_multipole_i, periodic, dim,
                          cj_cache, cj->grav.parts, gcount_j, gcount_padded_j,
                          shift_j, CoM_i, ci->grav.multipole, cj,
