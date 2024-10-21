@@ -2290,7 +2290,7 @@ void runner_dopair_recursive_grav(struct runner *r, struct cell *ci,
                                           /* use_rebuild_sizes=*/0, periodic)) { //  对称地计算SWIFT论文(49)式，E_BA和E_AB同时满足条件才返回真；
 
     /* Go M-M */
-    runner_dopair_grav_mm(r, ci, cj);
+    runner_dopair_grav_mm(r, ci, cj); //  如果ci再引擎e对应的Node上，则计算cj对ci的F张量的贡献，对cj同理；
 
     /* Did we reach the bottom? */
   } else if (!ci->split && !cj->split) {
