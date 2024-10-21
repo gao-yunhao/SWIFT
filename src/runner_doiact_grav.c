@@ -1296,8 +1296,8 @@ void runner_dopair_grav_pp(struct runner *r, struct cell *ci, struct cell *cj,
       if (allow_multipole_j)
         runner_dopair_grav_pm_full(ci_cache, gcount_padded_i, CoM_j, multi_j,
                                    periodic, dim, e, ci->grav.parts, gcount_i,
-                                   cj);
-    }
+                                   cj); 
+    }                                   
     if (cj_active && symmetric) {
 
       /* First the P2P */
@@ -1339,14 +1339,14 @@ void runner_dopair_grav_pp(struct runner *r, struct cell *ci, struct cell *cj,
         /* First the (truncated) P2P */
         runner_dopair_grav_pp_truncated(ci_cache, cj_cache, gcount_i, gcount_j,
                                         gcount_padded_j, dim, r_s_inv, e,
-                                        ci->grav.parts, cj->grav.parts);
-
+                                        ci->grav.parts, cj->grav.parts);//  对ci中所有粒子进行循环，如果该粒子当前不用被kick或者需要用multipole计算，则跳过；
+                                                                        //  否则对cj中粒子循环计算受力，磨光长度以长的为准；
         /* Then the M2P */
         if (allow_multipole_j)
           runner_dopair_grav_pm_truncated(ci_cache, gcount_padded_i, CoM_j,
                                           multi_j, dim, r_s_inv, e,
-                                          ci->grav.parts, gcount_i, cj);
-      }
+                                          ci->grav.parts, gcount_i, cj); //  对ci中所有粒子进行循环，如果该粒子当前不用被kick或者不需要用multipole计算，则跳过；
+      }                                                                  //  否则使用cj多极矩，磨光长度以cj中最长的粒子和当前计算的ci粒子中长的为准，计算多极矩时进的粒子同样没有考虑离得非常近的粒子的磨光；
       if (cj_active && symmetric) {
 
         /* First the (truncated) P2P */
