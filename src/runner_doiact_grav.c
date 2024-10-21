@@ -1086,7 +1086,7 @@ static INLINE void runner_dopair_grav_pm_truncated(
                             SWIFT_CACHE_ALIGNMENT);
   swift_assume_size(gcount_padded_i, VEC_SIZE);
 
-  const float multi_epsilon = multi_j->max_softening;
+  const float multi_epsilon = multi_j->max_softening; //  cell里面softening length最大的gpart粒子的softening length;
 
   /* Loop over all particles in ci... */
 #if !defined(SWIFT_DEBUG_CHECKS) && !defined(SWIFT_GRAVITY_FORCE_CHECKS) && \
