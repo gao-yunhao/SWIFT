@@ -2092,7 +2092,7 @@ __attribute__((nonnull)) INLINE static void gravity_M2L_symmetric(
                                     rs_inv, &pot); //  计算D张量，当两个多极矩之间的距离小于softening length（两个多极矩中粒子最大的那一个）的时候仍然没有考虑截断；
 
   /* Do the first M2L tensor multiplication */
-  gravity_M2L_apply(l_b, m_a, &pot); //  计算F张量
+  gravity_M2L_apply(l_b, m_a, &pot); //  计算F张量，SWIFT中是计算完所有M2L后再对每个cell单独执行L2P，因此这个函数中使用的都是 += ；
 
   /* Flip the signs of odd derivatives */
   potential_derivatives_flip_signs(&pot);
