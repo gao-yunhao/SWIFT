@@ -1254,7 +1254,7 @@ void runner_dopair_grav_pp(struct runner *r, struct cell *ci, struct cell *cj,
   const struct multipole *multi_j = &cj->grav.multipole->m_pole;
   const float CoM_i[3] = {(float)(ci->grav.multipole->CoM[0] - shift_i[0]),
                           (float)(ci->grav.multipole->CoM[1] - shift_i[1]),
-                          (float)(ci->grav.multipole->CoM[2] - shift_i[2])};
+                          (float)(ci->grav.multipole->CoM[2] - shift_i[2])}; //  上面设置了shift=0，所以这里实际上什么都没干
   const float CoM_j[3] = {(float)(cj->grav.multipole->CoM[0] - shift_j[0]),
                           (float)(cj->grav.multipole->CoM[1] - shift_j[1]),
                           (float)(cj->grav.multipole->CoM[2] - shift_j[2])};
@@ -1273,7 +1273,7 @@ void runner_dopair_grav_pp(struct runner *r, struct cell *ci, struct cell *cj,
   gravity_cache_populate(e->max_active_bin, allow_multipole_j, periodic, dim,
                          ci_cache, ci->grav.parts, gcount_i, gcount_padded_i,
                          shift_i, CoM_j, cj->grav.multipole, ci,
-                         e->gravity_properties);
+                         e->gravity_properties); //  将ci中粒子的坐标转换为相对于shift的坐标（shift=0，所以没有影响），对ci的每一个粒子计算是否可以使用M2P，并把加速度和引力势赋值为0；
   gravity_cache_populate(e->max_active_bin, allow_multipole_i, periodic, dim,
                          cj_cache, cj->grav.parts, gcount_j, gcount_padded_j,
                          shift_j, CoM_i, ci->grav.multipole, cj,
