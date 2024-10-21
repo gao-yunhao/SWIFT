@@ -234,7 +234,7 @@ __attribute__((always_inline)) INLINE static int cell_is_active_gravity(
         e->ti_current * e->time_base, e->cosmology->a);
 #endif
 
-  return (c->grav.ti_end_min == e->ti_current);
+  return (c->grav.ti_end_min == e->ti_current); //  cell中至少有一个particle在这一步迭代？
 }
 
 /**
