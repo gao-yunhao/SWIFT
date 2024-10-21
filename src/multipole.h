@@ -2089,10 +2089,10 @@ __attribute__((nonnull)) INLINE static void gravity_M2L_symmetric(
   /* Compute all derivatives */
   struct potential_derivatives_M2L pot;
   potential_derivatives_compute_M2L(dx, dy, dz, r2, r_inv, eps, periodic,
-                                    rs_inv, &pot);
+                                    rs_inv, &pot); //  计算D张量，当两个多极矩之间的距离小于softening length的时候仍然没有考虑截断；
 
   /* Do the first M2L tensor multiplication */
-  gravity_M2L_apply(l_b, m_a, &pot);
+  gravity_M2L_apply(l_b, m_a, &pot); //  计算F张量
 
   /* Flip the signs of odd derivatives */
   potential_derivatives_flip_signs(&pot);
