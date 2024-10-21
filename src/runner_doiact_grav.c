@@ -2287,7 +2287,7 @@ void runner_dopair_recursive_grav(struct runner *r, struct cell *ci,
     /* Can we use M-M interactions ? */
   } else if (gravity_M2L_accept_symmetric(e->gravity_properties, multi_i,
                                           multi_j, r2,
-                                          /* use_rebuild_sizes=*/0, periodic)) {
+                                          /* use_rebuild_sizes=*/0, periodic)) { //  对称地计算SWIFT论文(49)式，E_BA和E_AB同时满足条件才返回真；
 
     /* Go M-M */
     runner_dopair_grav_mm(r, ci, cj);
