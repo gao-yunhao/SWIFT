@@ -144,7 +144,7 @@ __attribute__((nonnull, pure)) INLINE static int gravity_M2L_accept(
     const int cond_1 = M_max * ratio < eps * min_a_grav * f_MAC_inv;
 
     const int cond_2 =
-        props->use_tree_below_softening || max_softening * max_softening < r2;
+        props->use_tree_below_softening || max_softening * max_softening < r2; //  use_tree_below_softening：在两个multipole距离小于它们中粒子最大的softening length后是否继续使用树方法计算引力；
 
     return cond_1 && cond_2;
 
