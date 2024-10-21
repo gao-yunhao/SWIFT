@@ -763,7 +763,7 @@ static INLINE void runner_dopair_grav_pp_truncated(
   for (int pid = 0; pid < gcount_i; pid++) {
 
     /* Skip inactive particles */
-    if (!ci_cache->active[pid]) continue;
+    if (!ci_cache->active[pid]) continue; //  active：当前该粒子是否需要被kick，和cell是否计算gravity的那个active性不同
 
     /* Skip particle that can use the multipole */
     if (ci_cache->use_mpole[pid]) continue;
