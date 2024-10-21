@@ -1883,7 +1883,7 @@ static INLINE void runner_dopair_grav_mm_symmetric(struct runner *r,
 
   /* Anything to do here? */
   if ((!cell_is_active_gravity_mm(ci, e) || ci->nodeID != engine_rank) ||
-      (!cell_is_active_gravity_mm(cj, e) || cj->nodeID != engine_rank))
+      (!cell_is_active_gravity_mm(cj, e) || cj->nodeID != engine_rank)) //  engine_rank：当前MPI的rank
     error("Invalid state in symmetric M-M calculation!");
 
   /* Short-cut to the multipole */
@@ -1933,7 +1933,7 @@ static INLINE void runner_dopair_grav_mm_symmetric(struct runner *r,
   /* Let's interact at this level */
   gravity_M2L_symmetric(&ci->grav.multipole->pot, &cj->grav.multipole->pot,
                         multi_i, multi_j, ci->grav.multipole->CoM,
-                        cj->grav.multipole->CoM, props, periodic, dim, r_s_inv);
+                        cj->grav.multipole->CoM, props, periodic, dim, r_s_inv); //  分别计算两个cell的对彼此F张量的贡献；
 
 #ifndef SWIFT_TASKS_WITHOUT_ATOMICS
   /* Unlock the multipoles */
