@@ -2037,7 +2037,7 @@ static INLINE void runner_dopair_grav_mm(struct runner *r,
 
   /* Interact! */
   if (do_i && do_j)
-    runner_dopair_grav_mm_symmetric(r, ci, cj);
+    runner_dopair_grav_mm_symmetric(r, ci, cj); //  分别计算彼此M2L的贡献；
   else if (do_i)
     runner_dopair_grav_mm_nonsym(r, ci, cj);
   else if (do_j)
