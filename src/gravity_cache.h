@@ -266,7 +266,7 @@ INLINE static void gravity_cache_populate(
 
     /* Check whether we can use the multipole instead of P-P */
     use_mpole[i] = allow_mpole && gravity_M2P_accept(grav_props, &gparts[i],
-                                                     multipole, r2, periodic);
+                                                     multipole, r2, periodic); //  对每个粒子分别计算是否可以使用M2P
   }
 
 #ifdef SWIFT_DEBUG_CHECKS
@@ -292,7 +292,7 @@ INLINE static void gravity_cache_populate(
   }
 
   /* Zero the output as well */
-  gravity_cache_zero_output(c, gcount_padded);
+  gravity_cache_zero_output(c, gcount_padded); //  把每个粒子的加速度和引力势赋值为0
 }
 
 /**
