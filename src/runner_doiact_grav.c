@@ -2290,14 +2290,14 @@ void runner_dopair_recursive_grav(struct runner *r, struct cell *ci,
                                           /* use_rebuild_sizes=*/0, periodic)) { //  对称地计算SWIFT论文(49)式，E_BA和E_AB同时满足条件才返回真；
 
     /* Go M-M */
-    runner_dopair_grav_mm(r, ci, cj); //  如果ci再引擎e对应的Node上，则计算cj对ci的F张量的贡献，对cj同理；
+    runner_dopair_grav_mm(r, ci, cj); //  如果ci在引擎e对应的Node上，则计算cj对ci的F张量的贡献，对cj同理；
 
     /* Did we reach the bottom? */
   } else if (!ci->split && !cj->split) {
 
     /* We have two leaves. Go P-P. */
     runner_dopair_grav_pp(r, ci, cj, /*symmetric*/ 1, /*allow_mpoles=*/1); //  对ci和cj中粒子分别计算引力，对每一个粒子分别判断，如果满足MAC，则计算M2P，否则计算P2P；
-
+                                                                           //  （当然开始时需要判断ci和cj是否在引擎e对应的Node上）
   } else {
 
     /* Alright, we'll have to split and recurse. */
