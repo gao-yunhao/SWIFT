@@ -2435,7 +2435,7 @@ void runner_do_grav_long_range(struct runner *r, struct cell *ci,
 
   /* Recover the list of top-level cells */
   struct cell *cells = e->s->cells_top;
-  int *cells_with_particles = e->s->cells_with_particles_top;
+  int *cells_with_particles = e->s->cells_with_particles_top; //  包含粒子的top cell的编号数组；
   const int nr_cells_with_particles = e->s->nr_cells_with_particles;
 
   /* Anything to do here? */
@@ -2473,7 +2473,7 @@ void runner_do_grav_long_range(struct runner *r, struct cell *ci,
 
       /* Minimal distance between any pair of particles */
       const double min_radius2 =
-          cell_min_dist2_same_size(top, cj, periodic, dim);
+          cell_min_dist2_same_size(top, cj, periodic, dim); //  使用两个cell的顶点坐标相减得到；
 
       /* Are we beyond the distance where the truncated forces are 0 ?*/
       if (min_radius2 > max_distance2) {
@@ -2491,7 +2491,7 @@ void runner_do_grav_long_range(struct runner *r, struct cell *ci,
 #endif
 
         /* Record that this multipole received a contribution */
-        multi_i->pot.interacted = 1;
+        multi_i->pot.interacted = 1; //  interacted：当前多极矩是否已经计算了其他cell的贡献
 
         /* We are done here. */
         continue;
@@ -2499,10 +2499,10 @@ void runner_do_grav_long_range(struct runner *r, struct cell *ci,
     }
 
     if (cell_can_use_pair_mm(top, cj, e, e->s, /*use_rebuild_data=*/1,
-                             /*is_tree_walk=*/0)) {
+                             /*is_tree_walk=*/0)) { //  判断是否满足MAC条件
 
       /* Call the PM interaction fucntion on the active sub-cells of ci */
-      runner_dopair_grav_mm_nonsym(r, ci, cj);
+      runner_dopair_grav_mm_nonsym(r, ci, cj); //  计算F张量
       // runner_dopair_recursive_grav_pm(r, ci, cj);
 
       /* Record that this multipole received a contribution */
