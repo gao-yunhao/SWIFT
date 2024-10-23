@@ -2001,7 +2001,7 @@ static INLINE void runner_dopair_grav_mm_nonsym(struct runner *r,
 
   /* Let's interact at this level */
   gravity_M2L_nonsym(&ci->grav.multipole->pot, multi_j, ci->grav.multipole->CoM,
-                     cj->grav.multipole->CoM, props, periodic, dim, r_s_inv);
+                     cj->grav.multipole->CoM, props, periodic, dim, r_s_inv); //  计算F张量（只计算ci的）；
 
 #ifndef SWIFT_TASKS_WITHOUT_ATOMICS
   /* Unlock the multipoles */
