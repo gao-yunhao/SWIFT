@@ -381,7 +381,7 @@ int cell_pack_end_step(const struct cell *c, struct pcell_step *pcells) {
  *
  * @return The number of cells that were packed.
  */
-int cell_unpack_end_step(struct cell *c, const struct pcell_step *pcells) {
+int cell_unpack_end_step(struct cell *c, const struct pcell_step *pcells) { pcell_step  当前时间步长结束后cell的信息；
 
 #ifdef WITH_MPI
 
