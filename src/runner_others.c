@@ -754,7 +754,7 @@ void runner_do_end_grav_force(struct runner *r, struct cell *c, int timer) {
   const struct engine *e = r->e;
   const int with_self_gravity = (e->policy & engine_policy_self_gravity);
   const int with_black_holes = (e->policy & engine_policy_black_holes);
-  const int with_sinks = (e->policy & engine_policy_sinks);
+  const int with_sinks = (e->policy & engine_policy_sinks); //  policy：int型整数，二进制下每一位表示是否包含某种成分；
 
   TIMER_TIC;
 
@@ -775,7 +775,7 @@ void runner_do_end_grav_force(struct runner *r, struct cell *c, int timer) {
     float potential_normalisation = 0.;
     if (periodic && with_self_gravity) {
       const double volume = s->dim[0] * s->dim[1] * s->dim[2];
-      const double r_s = e->mesh->r_s;
+      const double r_s = e->mesh->r_s; //  r_s：SWIFT论文中4.5小节周期性边界条件下用的尺度参数；
       potential_normalisation = 4. * M_PI * e->total_mass * r_s * r_s / volume;
     }
 
