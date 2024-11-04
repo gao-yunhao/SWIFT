@@ -100,7 +100,7 @@ void runner_do_grav_down(struct runner *r, struct cell *c, int timer) {
 
           /* Shift the field tensor */
           gravity_L2L(&shifted_tensor, &c->grav.multipole->pot,
-                      cp->grav.multipole->CoM, c->grav.multipole->CoM);
+                      cp->grav.multipole->CoM, c->grav.multipole->CoM); //  把SWIFT论文中的(42)式中的r_a向量展开为r'_a + dx，相当于是计算父节点的F向量对子节点的F向量的影响；
 
           /* Add it to this level's tensor */
           gravity_field_tensors_add(&cp->grav.multipole->pot, &shifted_tensor);
