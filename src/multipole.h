@@ -2523,7 +2523,7 @@ __attribute__((always_inline, nonnull)) INLINE static void gravity_M2P(
  */
 __attribute__((nonnull)) INLINE static void gravity_L2L(
     struct grav_tensor *restrict la, const struct grav_tensor *restrict lb,
-    const double pos_a[3], const double pos_b[3]) {
+    const double pos_a[3], const double pos_b[3]) { //  把SWIFT论文中的(42)式中的r_a向量展开为r'_a + dx，相当于是计算父节点的F向量对子节点的F向量的影响；
 
   /* Initialise everything to zero */
   gravity_field_tensors_init(la, 0);
