@@ -156,7 +156,7 @@ void runner_do_grav_down(struct runner *r, struct cell *c, int timer) {
           error("Adding forces to an un-initialised gpart.");
 #endif
         /* Apply the kernel */
-        gravity_L2P(pot, CoM, gp);
+        gravity_L2P(pot, CoM, gp); //  利用SWIFT论文(42)式计算多极矩对每一个粒子的贡献；
       }
     }
 
