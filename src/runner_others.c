@@ -879,7 +879,7 @@ void runner_do_end_grav_force(struct runner *r, struct cell *c, int timer) {
         /* Deal with sinks' need of potentials */
         if (with_sinks && gp->type == swift_type_gas) {
           const size_t offset = -gp->id_or_neg_offset;
-          sink_store_potential_in_part(&s->parts[offset].sink_data, gp);
+          sink_store_potential_in_part(&s->parts[offset].sink_data, gp); //  同上，把gpart的引力势信息存储进part的sink相关部分；
         }
       }
     }
