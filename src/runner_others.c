@@ -773,10 +773,10 @@ void runner_do_end_grav_force(struct runner *r, struct cell *c, int timer) {
 
     /* Potential normalisation in the case of periodic gravity */
     float potential_normalisation = 0.;
-    if (periodic && with_self_gravity) {
+    if (periodic && with_self_gravity) { //  self_gravity：就是普通的N体引力计算，这项取为0意味着代码算的是粒子在外场中的运动；
       const double volume = s->dim[0] * s->dim[1] * s->dim[2];
       const double r_s = e->mesh->r_s; //  r_s：SWIFT论文中4.5小节周期性边界条件下用的尺度参数；
-      potential_normalisation = 4. * M_PI * e->total_mass * r_s * r_s / volume;
+      potential_normalisation = 4. * M_PI * e->total_mass * r_s * r_s / volume; //  周期性边值条件下对引力势的修正，可能等价于4\pi G\bar{\rho} * 距离^2？
     }
 
     const int gcount = c->grav.count;
@@ -792,7 +792,7 @@ void runner_do_end_grav_force(struct runner *r, struct cell *c, int timer) {
 
         /* Finish the force calculation */
         gravity_end_force(gp, G_newton, potential_normalisation, periodic,
-                          with_self_gravity);
+                          with_self_gravity); //  给加速度和引力势分别乘上G，并计算MAC中使用的上一轮加速度（没有乘G的）
 
 #ifdef SWIFT_MAKE_GRAVITY_GLASS
 
