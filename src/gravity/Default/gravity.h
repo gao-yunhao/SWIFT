@@ -239,7 +239,7 @@ __attribute__((always_inline)) INLINE static void gravity_end_force(
 
   /* Apply the periodic correction to the peculiar potential */
 #ifndef SWIFT_GRAVITY_NO_POTENTIAL
-  if (periodic) gp->potential += potential_normalisation;
+  if (periodic) gp->potential += potential_normalisation; //  引力势周期性边界条件修正，需要去掉背景密度的影响；
 #endif
 
   /* Add back the long-range forces
@@ -252,7 +252,7 @@ __attribute__((always_inline)) INLINE static void gravity_end_force(
   /* Record the norm of the acceleration for the adaptive opening criteria.
    * Will always be an (active) timestep behind. */
   const float old_a_grav_norm =
-      a_grav[0] * a_grav[0] + a_grav[1] * a_grav[1] + a_grav[2] * a_grav[2];
+      a_grav[0] * a_grav[0] + a_grav[1] * a_grav[1] + a_grav[2] * a_grav[2]; //  MAC中使用的是没有乘G的加速度；
 
   gp->old_a_grav_norm = sqrtf(old_a_grav_norm);
 
