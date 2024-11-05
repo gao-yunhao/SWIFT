@@ -874,7 +874,7 @@ void runner_do_end_grav_force(struct runner *r, struct cell *c, int timer) {
           const size_t offset = -gp->id_or_neg_offset;
           black_holes_store_potential_in_part(
               &s->parts[offset].black_holes_data, gp);
-        }
+        } //  上面两个函数的作用都是：如果当前gpart粒子对应一个black_hole/gas，那么就把这个gpart粒子的势存储进相应bpart/part黑洞相关的部分；
 
         /* Deal with sinks' need of potentials */
         if (with_sinks && gp->type == swift_type_gas) {
