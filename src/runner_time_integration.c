@@ -425,9 +425,9 @@ void runner_do_kick2(struct runner *r, struct cell *c, const int timer) {
           error("Woken-up particle that has not been processed in kick1");
 #endif
         /* Time-step length on the integer timeline */
-        const integertime_t ti_step = get_integer_timestep(p->time_bin);
+        const integertime_t ti_step = get_integer_timestep(p->time_bin); //  1LL << (bin + 1)；
         const integertime_t ti_begin =
-            get_integer_time_begin(ti_current, p->time_bin) + ti_step / 2;
+            get_integer_time_begin(ti_current, p->time_bin) + ti_step / 2; //  计算time_bin对应的整数时间dti，用ti_current-1整除它，再乘dti；
         const integertime_t ti_end = ti_begin + ti_step / 2;
 
 #ifdef SWIFT_DEBUG_CHECKS
