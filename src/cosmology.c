@@ -71,7 +71,7 @@ static INLINE double interp_table(const double *table, const double x,
   const int ii = min(cosmology_table_length - 1, i);
 
   /* Indicate that the whole array is aligned on boundaries */
-  swift_align_information(double, table, SWIFT_STRUCT_ALIGNMENT);
+  swift_align_information(double, table, SWIFT_STRUCT_ALIGNMENT); //  让编译器可以假定table数组是32位对齐的；
 
   if (ii < 1)
     return table[0] * xx;
