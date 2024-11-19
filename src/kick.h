@@ -188,7 +188,7 @@ __attribute__((always_inline)) INLINE static void kick_gpart(
   gp->v_full[2] += gp->a_grav_mesh[2] * dt_kick_mesh_grav;
 
   /* Kick extra variables */
-  gravity_kick_extra(gp, dt_kick_grav);
+  gravity_kick_extra(gp, dt_kick_grav); //  这个函数里是空的；
 }
 
 /**
