@@ -792,7 +792,7 @@ void runner_do_end_grav_force(struct runner *r, struct cell *c, int timer) {
 
         /* Finish the force calculation */
         gravity_end_force(gp, G_newton, potential_normalisation, periodic,
-                          with_self_gravity); //  给加速度和引力势分别乘上G，并计算MAC中使用的上一轮加速度（没有乘G的）
+                          with_self_gravity); //  给加速度和引力势分别乘上G（短程加速度，不算mesh的），并计算MAC中使用的上一轮加速度（没有乘G的，单独加上mesh的）；
 
 #ifdef SWIFT_MAKE_GRAVITY_GLASS
 
